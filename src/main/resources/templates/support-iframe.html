@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/custom.css}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Nền khung chat bên trong iframe */
+        body {
+            background-color: #f4f4f4; /* Trắng đậm */
+            overflow: hidden;
+        }
+        .chat-box {
+            height: calc(100vh - 60px);
+            overflow-y: scroll;
+            padding: 10px;
+            padding-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .message-container {
+            display: flex;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .message-container.sent {
+            justify-content: flex-end; /* Khách gửi: Căn phải */
+        }
+        .message-container.received {
+            justify-content: flex-start; /* Admin gửi: Căn trái */
+        }
+        .message {
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 80%;
+            font-size: 0.9rem;
+            word-wrap: break-word;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        /* Tin nhắn khách gửi (Màu Đỏ đậm) */
+        .message.sent-bubble {
+            background-color: #721114;
+            color: #fff;
+            border-bottom-right-radius: 5px;
+        }
+        /* Tin nhắn Admin gửi (Màu Trắng) */
+        .message.received-bubble {
+            background-color: #ffffff;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 5px;
+        }
+
+        /* Form nhập tin nhắn */
+        #chatForm {
+            background-color: #fff !important;
+            border-top: 1px solid #ccc !important;
+        }
+        #chatForm input {
+            background-color: #f9f9f9;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        #chatForm input::placeholder {
+            color: #999;
+        }
+        #chatForm button {
+            background-color: #721114 !important;
+            color: #fff !important;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="p-2">
+
+    <div class="chat-box" id="chatBox">
+        <div th:replace="~{::messageList}"></div>
+    </div>
+
+    <div th:fragment="messageList" style="display: contents;">
+        <div th:each="msg : ${messages}"
+             th:class="${'message-container ' + (msg.admin == null ? 'sent' : 'received')}">
+            <div th:class="${'message ' + (msg.admin == null ? 'sent-bubble' : 'received-bubble')}">
+                <div th:text="${msg.content}"></div>
+                <small style="font-size: 0.7rem; opacity: 0.7;"
+                       th:text="${#temporals.format(msg.timestamp, 'HH:mm')}"></small>
+            </div>
+        </div>
+    </div>
+
+    <form id="chatForm" class="d-flex p-2 fixed-bottom">
+        <input type="text" id="content" name="content" class="form-control me-2" placeholder="Nhập tin nhắn..." required autocomplete="off">
+        <button type="submit" class="btn btn-sm">Gửi</button>
+    </form>
+
+    <script>
+        var token = $("meta[name='_csrf']").attr("content");
+        var header = $("meta[name='_csrf_header']").attr("content");
+
+        $(document).ajaxSend(function(e, xhr, options) {
+            xhr.setRequestHeader(header, token);
+        });
+
+        var chatBox = document.getElementById("chatBox");
+
+        function scrollToBottom() {
+            if(chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        $(document).ready(function() {
+            scrollToBottom();
+        });
+
+        $('#chatForm').submit(function(e) {
+            e.preventDefault();
+            var content = $('#content').val();
+            if (!content.trim()) return;
+
+            $.post('/support/send-ajax', { content: content }, function(response) {
+                if (response === 'success') {
+                    $('#content').val('');
+                    loadMessages(true);
+                }
+            });
+        });
+
+        function loadMessages(forceScroll = false) {
+            var isAtBottom = (chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight) < 50;
+
+            $.get('/support/messages', function(data) {
+                 $('#chatBox').html(data);
+                 if (isAtBottom || forceScroll) {
+                     scrollToBottom();
+                 }
+            });
+        }
+
+        setInterval(loadMessages, 3000);
+    </script>
+</body>
+</html>

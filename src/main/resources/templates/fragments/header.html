@@ -1,0 +1,50 @@
+<nav class="navbar navbar-expand-lg fixed-top" th:fragment="header(activePage)">
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/}">SPORT<span style="color: #fff;">RENTAL</span></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+            <ul class="navbar-nav align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activePage == 'home' ? 'active' : ''}" th:href="@{/}">Trang chủ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activePage == 'facilities' ? 'active' : ''}" th:href="@{/pitches}">Sân bóng</a>
+                </li>
+                <!-- LUÔN HIỆN NÚT ĐÁNH GIÁ VÀ TRỎ VỀ TRANG CHỦ -->
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/#reviews}">Đánh giá</a>
+                </li>
+
+                <!-- Chưa đăng nhập -->
+                <li class="nav-item ms-3" sec:authorize="!isAuthenticated()">
+                    <a th:href="@{/login}" class="btn btn-outline-custom">Đăng nhập</a>
+                </li>
+
+                <!-- Đã đăng nhập -->
+                <li class="nav-item ms-3" sec:authorize="isAuthenticated()">
+                    <!-- Nếu là ADMIN -> Link về Dashboard -->
+                    <a sec:authorize="hasAuthority('ADMIN')" th:href="@{/admin/dashboard}" class="btn btn-sm btn-warning fw-bold me-2">
+                        <i class="fas fa-cogs"></i> Quản trị
+                    </a>
+
+                    <!-- Nếu là USER -> Link về Profile -->
+                    <a sec:authorize="!hasAuthority('ADMIN')" th:href="@{/profile}" class="nav-link" th:classappend="${activePage == 'profile' ? 'active' : ''}">
+                        Chào, <span sec:authentication="name" class="text-info fw-bold">User</span>
+                    </a>
+                    <!-- Admin cũng hiện tên nhưng không click vào profile user -->
+                    <span sec:authorize="hasAuthority('ADMIN')" class="nav-link text-white">
+                        Chào, <span sec:authentication="name" class="text-warning fw-bold">Admin</span>
+                    </span>
+                </li>
+
+                <li class="nav-item ms-2" sec:authorize="isAuthenticated()">
+                    <a th:href="@{/logout}" class="btn btn-sm btn-outline-secondary" style="border-color: #8892b0; color: #8892b0;">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

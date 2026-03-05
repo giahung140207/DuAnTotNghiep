@@ -1,0 +1,642 @@
+/* MERCURY THEME - DARK MODE */
+:root {
+    --bg-color: #0a192f;
+    --text-color: #ccd6f6;
+    --accent-color: #64ffda;
+    --secondary-bg: #112240;
+    --card-bg: #1e2d4d;
+    --header-bg: #721114; /* Màu nền Header (Đỏ) */
+    --hero-btn-bg: #721114;
+    --hero-sub-title: #ffffff;
+    --feature-bg: #f4f4f4; /* Nền tổng thể section Features (Xám nhạt) */
+    --feature-box-bg: #5a0d0f; /* Nền hộp Features (Đỏ đậm hơn Header) */
+    --text-dark: #333333;
+    --pitch-bg: #e9ecef; /* Nền phần Pitch List (Xám đậm hơn Features) */
+    --pitch-card-bg: #ffffff; /* Nền thẻ Pitch */
+    --review-bg: #f4f4f4; /* Nền phần Reviews (Giống Features) */
+    --review-card-bg: #5a0d0f; /* Nền thẻ Review (Đỏ đậm hơn Header) */
+    --chat-bg: #f4f4f4; /* Nền khung chat (Trắng đậm) */
+    --chat-border: #721114; /* Viền khung chat (Đỏ đậm) */
+    --profile-bg: #f4f4f4; /* Nền trang Profile */
+    --profile-card-bg: #ffffff; /* Nền thẻ Profile */
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* --- HEADER (CẬP NHẬT MỚI - TRANSPARENT) --- */
+.navbar {
+    background-color: var(--header-bg); /* Mặc định có màu (cho các trang con) */
+    backdrop-filter: none;
+    padding: 10px 0; /* Padding mặc định */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    transition: background-color 0.3s, padding 0.3s, box-shadow 0.3s; /* Hiệu ứng chuyển đổi mượt */
+}
+
+/* Class này sẽ được JS thêm vào khi ở đầu trang Home */
+.navbar.navbar-transparent {
+    background-color: transparent !important; /* QUAN TRỌNG: Ghi đè màu nền */
+    box-shadow: none !important;
+    border-bottom: none !important;
+    padding: 20px 0; /* Padding lớn hơn khi trong suốt */
+}
+
+.navbar-brand {
+    color: #fff !important; /* Logo màu trắng */
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+}
+
+.navbar-brand span {
+    color: #fff !important; /* Phần RENTAL cũng màu trắng */
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.8) !important; /* Màu chữ menu hơi mờ */
+    font-weight: 600;
+    margin-left: 20px;
+    font-size: 1rem;
+    transition: all 0.3s;
+    position: relative; /* Để làm gạch chân */
+}
+
+/* Hiệu ứng Hover & Active: Gạch chân */
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: #fff; /* Gạch chân màu trắng */
+    transition: width 0.3s;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: #fff !important; /* Hover sáng lên */
+}
+
+.nav-link:hover::after, .nav-link.active::after {
+    width: 100%; /* Hiện gạch chân */
+}
+
+/* Tên User sau khi đăng nhập */
+.nav-link .text-info {
+    color: #fff !important; /* Đổi màu tên user thành Trắng */
+    font-weight: 800; /* Đậm hơn chút */
+    text-transform: uppercase; /* Viết hoa cho đẹp */
+}
+
+/* Nút Đăng nhập */
+.btn-outline-custom {
+    border: 2px solid #fff;
+    color: #fff;
+    font-weight: 700;
+    padding: 8px 20px;
+    font-size: 0.95rem;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+.btn-outline-custom:hover {
+    background-color: #fff;
+    color: var(--header-bg); /* Chữ đổi thành màu nền header */
+}
+
+/* Nút Logout trên Header */
+.navbar .btn-outline-secondary {
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    color: #fff !important;
+}
+.navbar .btn-outline-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: #fff !important;
+}
+
+/* --- HERO SECTION (CẬP NHẬT MÀU) --- */
+/* Tiêu đề nhỏ (h4) */
+.carousel-caption h4.text-info {
+    color: var(--hero-sub-title) !important; /* Đổi màu xanh thành Trắng */
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-shadow: 1px 1px 5px rgba(0,0,0,0.8);
+}
+
+/* Nút Hero */
+.btn-hero {
+    background-color: var(--hero-btn-bg); /* Màu đỏ giống header */
+    color: #fff; /* Chữ trắng */
+    font-weight: 700;
+    padding: 12px 30px;
+    border-radius: 5px;
+    border: 2px solid var(--hero-btn-bg); /* Viền cùng màu */
+    transition: transform 0.3s, background-color 0.3s;
+}
+
+.btn-hero:hover {
+    transform: translateY(-3px);
+    background-color: #a3161a; /* Đỏ đậm hơn khi hover */
+    border-color: #a3161a;
+    color: #fff;
+}
+
+/* --- FEATURES SECTION (CẬP NHẬT MỚI) --- */
+#features {
+    background-color: var(--feature-bg); /* Nền xám nhạt */
+}
+
+/* Tiêu đề Section riêng cho Features (Màu đen) */
+#features .section-title {
+    color: var(--text-dark);
+}
+
+/* Gạch chân tiêu đề (Màu đỏ) */
+#features .section-title::after {
+    background: var(--header-bg);
+}
+
+/* Hộp tính năng */
+.feature-icon-box {
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--feature-box-bg); /* Nền Đỏ đậm */
+    border-radius: 10px;
+    transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+    border: 1px solid transparent;
+    height: 100%;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    color: #fff; /* Chữ trắng */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.feature-icon-box:hover {
+    transform: translateY(-10px);
+    border-color: #ff6b6b; /* Viền sáng hơn khi hover */
+    box-shadow: 0 10px 25px rgba(90, 13, 15, 0.4);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    color: #fff; /* Icon màu trắng */
+    margin-bottom: 20px;
+}
+
+.feature-icon-box h4 {
+    color: #fff; /* Tiêu đề màu trắng */
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.feature-icon-box p {
+    color: rgba(255, 255, 255, 0.9); /* Chữ mô tả trắng mờ */
+}
+
+/* --- PITCH LIST SECTION (CẬP NHẬT MỚI) --- */
+#pitches {
+    background-color: var(--pitch-bg) !important; /* Nền xám đậm hơn */
+}
+
+/* Tiêu đề Section riêng cho Pitch List (Màu đen) */
+#pitches .section-title {
+    color: var(--text-dark);
+}
+
+/* Gạch chân tiêu đề (Màu đỏ) */
+#pitches .section-title::after {
+    background: var(--header-bg);
+}
+
+#pitches .text-muted {
+    color: #666 !important; /* Chữ mô tả dưới tiêu đề màu xám đậm */
+}
+
+/* Pitch Card */
+.pitch-card {
+    background: var(--pitch-card-bg); /* Nền trắng */
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s; /* Bỏ transition border-color */
+    border: 1px solid var(--header-bg); /* Viền đỏ mặc định */
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.pitch-card:hover {
+    transform: translateY(-10px);
+    /* Không đổi màu viền nữa */
+    box-shadow: 0 15px 30px rgba(114, 17, 20, 0.2); /* Bóng đỏ đậm hơn khi hover */
+}
+
+.pitch-card-img {
+    height: 200px;
+    width: 100%;
+    object-fit: cover;
+    filter: brightness(1); /* Ảnh sáng bình thường */
+    transition: 0.3s;
+}
+
+.pitch-card:hover .pitch-card-img {
+    filter: brightness(1.1);
+}
+
+.pitch-card-body {
+    padding: 20px;
+}
+
+.pitch-card-body h3 {
+    color: var(--text-dark); /* Tên sân màu đen */
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+/* Loại sân (5 người / 7 người) - ÉP MÀU ĐEN */
+.pitch-card-body p,
+.pitch-card-body p.text-white,
+.pitch-card-body span {
+    color: #000000 !important; /* Đen tuyệt đối */
+    font-weight: 600; /* Đậm hơn chút cho dễ đọc */
+    opacity: 1 !important; /* Bỏ độ mờ */
+}
+
+/* Icon - ÉP MÀU ĐEN */
+.pitch-card-body i {
+    color: #000000 !important; /* Đen tuyệt đối */
+}
+
+/* GIÁ TIỀN - ÉP MÀU ĐỎ */
+.pitch-card-body .price-tag {
+    color: var(--header-bg) !important; /* Giá tiền màu đỏ */
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+/* Nút Chi tiết trong Card */
+.pitch-card .btn-outline-custom {
+    border-color: var(--header-bg) !important;
+    color: var(--header-bg) !important;
+}
+
+/* Icon trong nút Chi tiết */
+.pitch-card .btn-outline-custom i {
+    color: var(--header-bg) !important; /* Icon màu đỏ */
+}
+
+/* Hover Nút Chi tiết */
+.pitch-card .btn-outline-custom:hover {
+    background-color: var(--header-bg) !important;
+    color: #fff !important;
+}
+
+.pitch-card .btn-outline-custom:hover i {
+    color: #fff !important; /* Icon chuyển trắng khi hover */
+}
+
+/* --- REVIEWS SECTION (CẬP NHẬT MỚI) --- */
+#reviews {
+    background-color: var(--review-bg); /* Nền xám nhạt */
+}
+
+/* Tiêu đề Section riêng cho Reviews (Màu đen) */
+#reviews .section-title {
+    color: var(--text-dark);
+}
+
+/* Gạch chân tiêu đề (Màu đỏ) */
+#reviews .section-title::after {
+    background: var(--header-bg);
+}
+
+/* Mô tả dưới tiêu đề (Màu đen) */
+#reviews p.text-white {
+    color: var(--text-dark) !important;
+}
+
+/* Review Card */
+.review-card {
+    background-color: var(--review-card-bg) !important; /* Nền Đỏ đậm */
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+    border: 1px solid transparent;
+    color: #fff !important; /* Chữ trắng */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* Avatar */
+.review-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #000 !important; /* Nền đen */
+    color: #fff !important; /* Chữ trắng */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 15px;
+    border: 2px solid #fff; /* Viền trắng cho nổi */
+}
+
+/* Tên User & Ngày */
+.review-card h6, .review-card small {
+    color: #fff !important;
+}
+
+/* Nội dung comment */
+.review-card p {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Icon sao vàng */
+.review-card .text-warning {
+    color: #f1c40f !important;
+}
+
+/* Tên sân trong review */
+.review-card .text-info {
+    color: #fff !important; /* Đổi màu tên sân thành trắng */
+    font-weight: 600;
+}
+
+/* --- FOOTER (CẬP NHẬT MỚI) --- */
+footer {
+    background-color: var(--header-bg) !important; /* Nền Đỏ đậm */
+    padding: 50px 0 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.95rem;
+    color: #fff !important; /* Chữ trắng */
+}
+
+footer h5 {
+    color: #fff !important;
+    font-weight: 700;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+}
+
+/* Logo SPORTRENTAL trong Footer */
+.footer-brand {
+    color: #fff !important; /* Đổi màu xanh neon thành Trắng */
+    font-weight: 800;
+    font-size: 1.5rem;
+}
+
+footer p, footer li {
+    color: rgba(255, 255, 255, 0.9) !important; /* Chữ trắng hơi mờ */
+    margin-bottom: 10px;
+}
+
+footer a {
+    color: rgba(255, 255, 255, 0.9) !important;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+footer a:hover {
+    color: #f1c40f !important; /* Hover màu vàng */
+    text-decoration: underline;
+}
+
+.social-icons a {
+    font-size: 1.3rem;
+    margin-right: 18px;
+    color: #fff !important; /* Icon màu trắng */
+}
+
+.social-icons a:hover {
+    color: #000 !important; /* Hover icon thành màu Đen */
+}
+
+/* --- CHAT WIDGET (CẬP NHẬT MỚI) --- */
+.chat-toggle-btn {
+    background-color: var(--header-bg) !important; /* Nền Đỏ đậm */
+    color: #fff !important; /* Icon Trắng */
+    border: none;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.chat-toggle-btn:hover {
+    transform: scale(1.1);
+    background-color: #a3161a !important; /* Đỏ đậm hơn khi hover */
+}
+
+/* Cửa sổ Chat */
+.chat-popup {
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    width: 350px;
+    height: 450px;
+    background-color: var(--chat-bg) !important; /* Nền Trắng đậm */
+    border: 2px solid var(--chat-border) !important; /* Viền Đỏ đậm */
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    z-index: 9999;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Header Chat */
+.chat-header {
+    background-color: var(--chat-bg) !important; /* Nền Trắng đậm */
+    padding: 15px;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-dark) !important; /* Chữ Đen */
+    font-weight: bold;
+}
+
+.btn-close-chat {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0 5px;
+}
+
+.btn-close-chat:hover {
+    color: #000;
+}
+
+.chat-body {
+    flex: 1;
+    background-color: var(--chat-bg) !important; /* Nền Trắng đậm */
+}
+
+/* --- CÁC PHẦN KHÁC GIỮ NGUYÊN --- */
+.section-title {
+    color: #fff;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    position: relative;
+    display: inline-block;
+    font-size: 2rem; /* GIẢM KÍCH THƯỚC TIÊU ĐỀ */
+}
+
+.section-title::after {
+    content: '';
+    display: block;
+    width: 80px; /* Gạch chân dài hơn chút */
+    height: 4px;
+    background: var(--accent-color);
+    margin: 15px auto 0;
+}
+
+.section-padding {
+    padding: 80px 0;
+}
+
+/* --- PROFILE PAGE (CẬP NHẬT MỚI) --- */
+/* Nền trang Profile */
+.profile-page {
+    background-color: var(--profile-bg) !important;
+}
+
+/* Tiêu đề trang Profile */
+.profile-page .section-title {
+    color: var(--text-dark) !important;
+}
+.profile-page .section-title::after {
+    background: var(--header-bg) !important; /* Gạch chân đỏ */
+}
+
+/* Profile Card */
+.profile-card {
+    background-color: var(--profile-card-bg) !important; /* Nền trắng */
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.profile-name {
+    color: var(--text-dark) !important; /* Tên màu đen */
+    font-weight: 700;
+}
+
+.profile-email {
+    color: #666 !important; /* Email màu xám */
+}
+
+/* Nút Sửa thông tin & Đổi mật khẩu & Đánh giá (ĐỒNG BỘ MÀU ĐỎ) */
+.profile-card .btn-outline-light,
+.profile-card .btn-outline-warning,
+.table-custom .btn-outline-warning { /* Thêm nút Đánh giá */
+    border-color: var(--header-bg) !important;
+    color: var(--header-bg) !important;
+}
+.profile-card .btn-outline-light:hover,
+.profile-card .btn-outline-warning:hover,
+.table-custom .btn-outline-warning:hover {
+    background-color: var(--header-bg) !important;
+    color: #fff !important;
+}
+
+/* Thông tin Ví */
+.wallet-label {
+    color: var(--text-dark) !important; /* Label màu đen */
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.wallet-amount {
+    color: var(--header-bg) !important; /* Số tiền màu đỏ */
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+/* Điểm tích lũy & Thời gian đá */
+.profile-card .text-info,
+.profile-card .text-white {
+    color: var(--header-bg) !important; /* Đổi thành màu đỏ */
+    font-weight: 700;
+}
+
+/* Progress Bar */
+.profile-card .progress {
+    background-color: #e9ecef !important;
+}
+.profile-card .progress-bar {
+    background-color: var(--header-bg) !important; /* Thanh màu đỏ */
+}
+
+/* Nút Nạp tiền */
+.profile-card .btn-primary {
+    background-color: var(--header-bg) !important;
+    border-color: var(--header-bg) !important;
+}
+.profile-card .btn-primary:hover {
+    background-color: #a3161a !important;
+}
+
+/* Table Custom */
+.table-custom {
+    color: #ccd6f6;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+}
+
+.table-custom thead th {
+    border: none;
+    color: #8892b0;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    padding: 15px;
+}
+
+.table-custom tbody tr {
+    background-color: #112240;
+    transition: 0.3s;
+}
+
+.table-custom tbody tr:hover {
+    background-color: #1e2d4d;
+    transform: scale(1.01);
+}
+
+.table-custom td {
+    border: none;
+    padding: 20px 15px;
+    vertical-align: middle;
+}
+
+.table-custom td:first-child {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.table-custom td:last-child {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+/* Badge Check-in */
+.badge.bg-info.text-dark {
+    background-color: var(--header-bg) !important; /* Nền Đỏ */
+    color: #fff !important; /* Chữ Trắng */
+}

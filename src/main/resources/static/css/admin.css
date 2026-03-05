@@ -1,0 +1,268 @@
+/* ADMIN PANEL THEME - RED & WHITE */
+:root {
+    --admin-sidebar-bg: #721114; /* Sidebar Đỏ đậm */
+    --admin-sidebar-text: #ffffff;
+    --admin-bg: #f4f4f4; /* Nền chính Trắng xám */
+    --admin-card-bg: #ffffff; /* Nền Card Trắng */
+    --admin-text: #333333; /* Chữ Đen */
+    --admin-accent: #a3161a; /* Màu nhấn (Đỏ đậm hơn) */
+    --admin-border: #721114; /* ĐỔI MÀU VIỀN THÀNH ĐỎ ĐẬM */
+    --table-border: #dee2e6; /* Màu viền bảng (Xám nhạt) */
+}
+
+body {
+    background-color: var(--admin-bg);
+    color: var(--admin-text);
+    font-family: 'Montserrat', sans-serif;
+    overflow-x: hidden;
+}
+
+/* --- SIDEBAR --- */
+.sidebar {
+    background-color: var(--admin-sidebar-bg);
+    color: var(--admin-sidebar-text);
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    padding-top: 20px;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.sidebar-brand {
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 40px;
+    color: #fff;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-item {
+    margin-bottom: 5px;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 12px 25px;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: 0.3s;
+    font-weight: 500;
+    border-left: 4px solid transparent;
+}
+
+.sidebar-link:hover, .sidebar-link.active {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left-color: #fff;
+}
+
+.sidebar-link i {
+    width: 30px;
+    font-size: 1.1rem;
+}
+
+/* --- MAIN CONTENT --- */
+.main-content {
+    margin-left: 250px;
+    padding: 30px;
+    min-height: 100vh;
+}
+
+/* ÉP MÀU CHỮ ĐEN CHO TIÊU ĐỀ */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--admin-text) !important;
+    font-weight: 700;
+}
+
+/* --- CARDS (THÊM VIỀN ĐỎ) --- */
+.card, .stat-card {
+    background-color: var(--admin-card-bg) !important;
+    border: 1px solid var(--admin-border) !important; /* Viền đỏ */
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    padding: 20px;
+    color: var(--admin-text) !important; /* Ép chữ đen trong card */
+}
+
+.stat-title {
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    color: var(--admin-sidebar-bg) !important; /* Số liệu màu Đỏ */
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+/* ICON DASHBOARD (ĐỔI MÀU ĐỎ NHẠT HOẶC ĐẬM) */
+.stat-icon {
+    font-size: 2.5rem;
+    color: var(--admin-sidebar-bg) !important; /* Đổi thành màu Đỏ */
+    opacity: 0.2; /* Làm mờ nhẹ để không quá gắt */
+}
+
+/* --- TABLES (ĐÓNG KHUNG & SCROLL) --- */
+.table-responsive {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--table-border); /* Viền bao quanh bảng */
+}
+
+/* CLASS MỚI: BẢNG CÓ THANH CUỘN */
+.table-scroll {
+    max-height: 600px; /* Chiều cao tối đa (khoảng 10-12 dòng) */
+    overflow-y: auto;  /* Hiện thanh cuộn dọc */
+}
+
+/* Cố định Header khi cuộn */
+.table-scroll thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Tùy chỉnh thanh cuộn */
+.table-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+.table-scroll::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+.table-scroll::-webkit-scrollbar-thumb {
+    background: var(--admin-sidebar-bg);
+    border-radius: 4px;
+}
+
+.table-dark-custom {
+    width: 100%;
+    margin-bottom: 0;
+    color: var(--admin-text) !important; /* Chữ đen trong bảng */
+    background-color: var(--admin-card-bg);
+    border-collapse: collapse; /* Gộp viền */
+}
+
+.table-dark-custom thead th {
+    background-color: var(--admin-sidebar-bg); /* Header bảng màu Đỏ */
+    color: #fff !important; /* Chữ trắng trên nền đỏ */
+    border: 1px solid var(--table-border); /* Viền header */
+    padding: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.table-dark-custom tbody tr {
+    border-bottom: 1px solid #eee; /* Viền dòng nhạt hơn cho đỡ rối */
+    transition: 0.2s;
+    background-color: #fff !important; /* Nền trắng */
+}
+
+.table-dark-custom tbody tr:hover {
+    background-color: #f9f9f9 !important;
+}
+
+.table-dark-custom td {
+    padding: 15px;
+    vertical-align: middle;
+    border: 1px solid var(--table-border); /* Viền ô */
+    color: #333 !important; /* Chữ đen */
+}
+
+/* --- BUTTONS --- */
+.btn-primary {
+    background-color: var(--admin-sidebar-bg);
+    border-color: var(--admin-sidebar-bg);
+    font-weight: 600;
+}
+
+.btn-primary:hover {
+    background-color: var(--admin-accent);
+    border-color: var(--admin-accent);
+}
+
+.btn-outline-info {
+    color: var(--admin-sidebar-bg);
+    border-color: var(--admin-sidebar-bg);
+}
+
+.btn-outline-info:hover {
+    background-color: var(--admin-sidebar-bg);
+    color: #fff;
+}
+
+/* --- MODAL --- */
+.modal-content {
+    background-color: var(--admin-card-bg) !important;
+    color: var(--admin-text) !important;
+    border: 1px solid var(--admin-border) !important; /* Viền đỏ cho modal */
+}
+
+.modal-header {
+    border-bottom: 1px solid #eee;
+}
+
+.modal-header .btn-close {
+    filter: none !important; /* Không đảo màu icon đóng */
+}
+
+.modal-footer {
+    border-top: 1px solid #eee;
+}
+
+.form-control, .form-select {
+    background-color: #fff !important;
+    color: #333 !important;
+    border: 1px solid #ccc !important;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--admin-sidebar-bg);
+    box-shadow: 0 0 0 0.25rem rgba(114, 17, 20, 0.25);
+}
+
+.form-label {
+    color: var(--admin-text) !important;
+    font-weight: 600;
+}
+
+/* --- USER INFO (TOP RIGHT) --- */
+.user-info {
+    display: flex;
+    align-items: center;
+    color: var(--admin-text) !important; /* Chữ đen */
+    font-weight: 600;
+}
+
+.user-info img {
+    border: 2px solid var(--admin-sidebar-bg);
+}
+
+/* --- ALERTS --- */
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+}
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}

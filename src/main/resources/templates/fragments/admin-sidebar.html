@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="sidebar(activePage)" class="sidebar" id="adminSidebar">
+        <!-- VIẾT LIỀN SPORTRENTAL -->
+        <a href="#" class="sidebar-brand text-decoration-none d-block">SPORT<span style="color: #fff;">RENTAL</span></a>
+        <ul class="sidebar-menu mt-4">
+            <li class="sidebar-item">
+                <a class="sidebar-link" th:classappend="${activePage == 'dashboard' ? 'active' : ''}" th:href="@{/admin/dashboard}">
+                    <i class="fas fa-tachometer-alt me-3"></i> Tổng quan
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a class="sidebar-link" th:classappend="${activePage == 'pitches' ? 'active' : ''}" th:href="@{/admin/pitches}">
+                    <i class="fas fa-futbol me-3"></i> Quản lý Sân
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a class="sidebar-link d-flex justify-content-between" th:classappend="${activePage == 'bookings' ? 'active' : ''}" th:href="@{/admin/bookings}">
+                    <span><i class="fas fa-calendar-alt me-3"></i> Lịch đặt sân</span>
+                    <span id="badge-booking" class="badge bg-warning text-dark rounded-pill" style="display: none;">0</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a class="sidebar-link" th:classappend="${activePage == 'users' ? 'active' : ''}" th:href="@{/admin/users}">
+                    <i class="fas fa-users me-3"></i> Khách hàng
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a class="sidebar-link" th:classappend="${activePage == 'invoices' ? 'active' : ''}" th:href="@{/admin/invoices}">
+                    <i class="fas fa-file-invoice-dollar me-3"></i> Hóa đơn
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a class="sidebar-link d-flex justify-content-between" th:classappend="${activePage == 'support' ? 'active' : ''}" th:href="@{/admin/support}">
+                    <span><i class="fas fa-comments me-3"></i> Hỗ trợ</span>
+                    <span id="badge-support" class="badge bg-danger rounded-pill" style="display: none;">0</span>
+                </a>
+            </li>
+            <li class="sidebar-item mt-5">
+                <a class="sidebar-link" th:href="@{/logout}">
+                    <i class="fas fa-sign-out-alt me-3"></i> Đăng xuất
+                </a>
+            </li>
+        </ul>
+    </div>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+    <div th:fragment="chat-widget">
+        <!-- Chat Button -->
+        <button id="chat-toggle-btn" class="chat-toggle-btn" onclick="toggleChat()">
+            <i class="fas fa-comment-dots"></i>
+        </button>
+
+        <!-- Chat Popup -->
+        <div id="chat-popup" class="chat-popup">
+            <div class="chat-header">
+                <span>Hỗ trợ trực tuyến</span>
+                <button onclick="toggleChat()" class="btn-close-chat" title="Đóng chat">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="chat-body" id="chat-body-content">
+                <div sec:authorize="!isAuthenticated()" class="text-center p-4">
+                    <p class="text-muted">Vui lòng đăng nhập để chat với nhân viên hỗ trợ.</p>
+                    <a th:href="@{/login}" class="btn btn-sm btn-outline-custom">Đăng nhập ngay</a>
+                </div>
+
+                <div sec:authorize="isAuthenticated()" class="h-100">
+                    <iframe id="chatIframe" th:src="@{/support/widget}" style="width: 100%; height: 100%; border: none;"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function toggleChat() {
+                var popup = document.getElementById('chat-popup');
+                if (popup.style.display === 'none' || popup.style.display === '') {
+                    popup.style.display = 'flex';
+                } else {
+                    popup.style.display = 'none';
+                }
+            }
+
+            // Lắng nghe sự kiện từ Iframe để đóng chat
+            window.addEventListener('message', function(event) {
+                if (event.data === 'closeChat') {
+                    toggleChat();
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>

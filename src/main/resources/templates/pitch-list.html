@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách sân bóng | Sport Rental</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/custom.css}">
+    <style>
+        .page-header {
+            /* Overlay trắng mờ */
+            background: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2)), url('https://images.unsplash.com/photo-1556056504-5c7696c4c28d?q=80&w=2076&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            padding: 150px 0 80px;
+            margin-bottom: 0;
+        }
+
+        /* Tiêu đề trang (Màu Trắng) */
+        .page-header .section-title {
+            color: #fff !important;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* Bóng đen để nổi trên nền sáng */
+        }
+
+        /* Mô tả dưới tiêu đề (Màu Trắng) */
+        .page-header p {
+            color: #fff !important;
+            font-weight: 600;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+
+        /* Gạch chân tiêu đề trang (Màu đỏ) */
+        .page-header .section-title::after {
+            background: #721114 !important;
+        }
+
+        .filter-box {
+            background-color: #721114; /* Nền Đỏ đậm */
+            padding: 30px;
+            border-radius: 10px;
+            /* ĐIỀU CHỈNH MARGIN-TOP ĐỂ LÙI XUỐNG */
+            margin-top: -20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid #a3161a;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Nhãn Form (Màu Trắng) */
+        .filter-box .form-label {
+            color: #fff !important;
+        }
+
+        /* Input & Select (Nền Trắng, Chữ Đen) */
+        .filter-box .form-control,
+        .filter-box .form-select,
+        .filter-box .input-group-text {
+            background-color: #fff !important;
+            color: #333 !important;
+            border: 1px solid #ccc !important;
+        }
+
+        .filter-box .form-control::placeholder {
+            color: #999;
+        }
+
+        /* Nút Tìm kiếm (Màu Trắng, Chữ Đỏ) */
+        .filter-box .btn-hero {
+            background-color: #fff !important;
+            color: #721114 !important;
+            border: none;
+        }
+        .filter-box .btn-hero:hover {
+            background-color: #f1f1f1 !important;
+        }
+
+        /* Style cho sân bảo trì */
+        .pitch-card.maintenance {
+            opacity: 0.7;
+            filter: grayscale(80%);
+            pointer-events: none; /* Không cho click */
+        }
+        .pitch-card.maintenance .btn {
+            display: none; /* Ẩn nút chi tiết */
+        }
+        .maintenance-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        .maintenance-badge {
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transform: rotate(-15deg);
+            border: 2px solid white;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <div th:replace="~{fragments/header :: header('facilities')}"></div>
+
+    <!-- Page Header -->
+    <header class="page-header text-center">
+        <!-- ĐỔI FADE-DOWN THÀNH FADE-IN -->
+        <div class="container" data-aos="fade-in">
+            <h1 class="section-title" style="font-size: 3.5rem;">HỆ THỐNG SÂN BÃI</h1>
+            <p class="fs-5">Tìm kiếm sân bóng phù hợp nhất cho trận đấu của bạn</p>
+        </div>
+    </header>
+
+    <!-- Search & Filter Section -->
+    <section class="pb-5" style="background-color: #f4f4f4;">
+        <div class="container">
+            <!-- ĐỔI FADE-UP THÀNH FADE-IN -->
+            <div class="filter-box" data-aos="fade-in">
+                <!-- ĐỔI ACTION TỪ /facilities/search SANG /pitches/search -->
+                <form th:action="@{/pitches/search}" method="get" class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label text-info">Từ khóa</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-muted"><i class="fas fa-search"></i></span>
+                            <input type="text" name="keyword" class="form-control bg-dark text-white border-secondary" placeholder="Tìm theo tên sân hoặc địa chỉ...">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-info">Loại sân</label>
+                        <select name="type" class="form-select bg-dark text-white border-secondary">
+                            <option value="">-- Tất cả --</option>
+                            <option value="5">Sân 5 người</option>
+                            <option value="7">Sân 7 người</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-hero w-100" style="padding: 10px;">TÌM KIẾM</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pitch Grid -->
+    <section class="section-padding pt-0" id="pitches">
+        <div class="container">
+            <div class="row g-4">
+                <!-- ĐỔI FADE-UP THÀNH FADE-IN -->
+                <div class="col-md-6 col-lg-4" th:each="pitch : ${pitches}" data-aos="fade-in">
+                    <!-- Thêm class maintenance nếu sân đang bảo trì -->
+                    <div class="pitch-card h-100" th:classappend="${pitch.status.name() == 'MAINTENANCE' ? 'maintenance' : ''}">
+
+                        <!-- Overlay Bảo trì -->
+                        <div class="maintenance-overlay" th:if="${pitch.status.name() == 'MAINTENANCE'}">
+                            <div class="maintenance-badge">ĐANG BẢO TRÌ</div>
+                        </div>
+
+                        <img th:src="${pitch.imageUrl != null ? pitch.imageUrl : 'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?q=80&w=2071&auto=format&fit=crop'}"
+                             class="pitch-card-img" alt="Pitch Image">
+                        <div class="pitch-card-body">
+                            <h3 th:text="${pitch.name}">Sân A1</h3>
+
+                            <p class="mb-3 text-white" style="font-size: 0.9rem; opacity: 0.8;">
+                                <i class="fas fa-users me-2"></i>
+                                <span th:if="${pitch.type.name() == 'PITCH_5'}">Sân 5 người</span>
+                                <span th:if="${pitch.type.name() == 'PITCH_7'}">Sân 7 người</span>
+                            </p>
+
+                            <div class="d-flex justify-content-between align-items-center mt-4">
+                                <span class="price-tag" th:text="${#numbers.formatDecimal(pitch.pricePerHour, 0, 'COMMA', 0, 'POINT') + ' đ/h'}">300,000 đ/h</span>
+                                <!-- ĐỔI TỪ /facilities/pitch/{id} SANG /pitches/{id} -->
+                                <a th:href="@{/pitches/{id}(id=${pitch.id})}" class="btn btn-outline-custom btn-sm">Chi tiết <i class="fas fa-arrow-right ms-1"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="col-12 text-center py-5" th:if="${pitches.isEmpty()}">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <p class="text-muted fs-5">Không tìm thấy sân nào phù hợp với tiêu chí của bạn.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <!-- CHAT WIDGET -->
+    <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

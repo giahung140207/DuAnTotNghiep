@@ -1,0 +1,103 @@
+:root {
+    --primary-color: #00a651; /* Màu xanh đặc trưng của Alobo */
+    --secondary-color: #2c3e50;
+    --light-bg: #f8f9fa;
+    --text-color: #333;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--light-bg);
+    color: var(--text-color);
+}
+
+/* Navbar */
+.navbar-custom {
+    background-color: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 15px 0;
+}
+.navbar-brand {
+    font-weight: bold;
+    color: var(--primary-color) !important;
+    font-size: 24px;
+}
+.nav-link {
+    color: var(--secondary-color) !important;
+    font-weight: 500;
+    margin-left: 15px;
+}
+.nav-link:hover {
+    color: var(--primary-color) !important;
+}
+.btn-login {
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    border-radius: 20px;
+    padding: 5px 20px;
+}
+.btn-login:hover {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+/* Hero Section (Banner tìm kiếm) */
+.hero-section {
+    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1529900748604-07564a03e7a6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+    background-size: cover;
+    background-position: center;
+    height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    text-align: center;
+}
+
+.search-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    display: flex;
+    gap: 10px;
+    width: 80%;
+    max-width: 900px;
+}
+
+/* Pitch Card */
+.pitch-card {
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.3s;
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.pitch-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+.pitch-img {
+    height: 200px;
+    object-fit: cover;
+    width: 100%;
+}
+.pitch-price {
+    color: var(--primary-color);
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+/* Button */
+.btn-primary-custom {
+    background-color: var(--primary-color);
+    border: none;
+    color: #fff;
+    padding: 10px 25px;
+    border-radius: 5px;
+}
+.btn-primary-custom:hover {
+    background-color: #008f45;
+    color: #fff;
+}

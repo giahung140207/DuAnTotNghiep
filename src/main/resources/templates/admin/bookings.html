@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Đặt sân | Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        /* THANH CUỘN CHO BẢNG BOOKING */
+        .table-responsive-scroll {
+            max-height: 400px; /* Chiều cao tối đa */
+            overflow-y: auto;  /* Hiện thanh cuộn dọc */
+        }
+        /* Cố định tiêu đề bảng khi cuộn */
+        .table-responsive-scroll thead th {
+            position: sticky;
+            top: 0;
+            background-color: #721114; /* Header Đỏ đậm */
+            color: #fff;
+            z-index: 1;
+            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+        }
+        /* Tùy chỉnh thanh cuộn */
+        .table-responsive-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .table-responsive-scroll::-webkit-scrollbar-track {
+            background: #f4f4f4;
+        }
+        .table-responsive-scroll::-webkit-scrollbar-thumb {
+            background: #721114;
+            border-radius: 4px;
+        }
+
+        /* FullCalendar Customization */
+        .fc-col-header-cell {
+            background-color: #721114;
+            color: #fff;
+        }
+        .fc-button-primary {
+            background-color: #721114 !important;
+            border-color: #721114 !important;
+        }
+        .fc-day-today {
+            background-color: rgba(114, 17, 20, 0.05) !important;
+        }
+        .fc-event {
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Fragment -->
+    <div th:replace="~{fragments/admin-sidebar :: sidebar('bookings')}"></div>
+
+    <div class="main-content">
+        <h2 class="mb-4">Quản lý Đặt sân</h2>
+
+        <!-- Thông báo -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- 1. Danh sách chờ duyệt -->
+        <div class="card border-0 shadow-lg mb-4">
+            <div class="card-header bg-transparent border-bottom">
+                <!-- ĐỔI MÀU CHỮ VÀ ICON THÀNH ĐEN -->
+                <h5 class="mb-0 text-dark"><i class="fas fa-clock me-2 text-dark"></i> Yêu cầu chờ duyệt</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive table-responsive-scroll" style="max-height: 300px;">
+                    <table class="table table-dark-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Khách hàng</th>
+                                <th>Sân</th>
+                                <th>Thời gian</th>
+                                <th>Tổng tiền</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="booking : ${pendingBookings}">
+                                <td th:text="${'#' + booking.id}">#123</td>
+                                <td th:text="${booking.user.fullName}">Nguyen Van A</td>
+                                <td th:text="${booking.pitch.name}">Sân A1</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border border-secondary"
+                                          th:text="${#temporals.format(booking.startTime, 'HH:mm') + ' - ' + #temporals.format(booking.endTime, 'HH:mm')}">
+                                        17:00 - 18:30
+                                    </span>
+                                    <br><small th:text="${#temporals.format(booking.startTime, 'dd/MM/yyyy')}"></small>
+                                    <!-- HIỂN THỊ GHI CHÚ NẾU LÀ ĐƠN ĐỔI SÂN -->
+                                    <div th:if="${booking.note != null and booking.note.startsWith('Yêu cầu đổi')}" class="mt-1">
+                                        <span class="badge bg-primary"><i class="fas fa-exchange-alt"></i> Đổi sân</span>
+                                    </div>
+                                </td>
+                                <td class="fw-bold text-danger" th:text="${#numbers.formatDecimal(booking.totalPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">300,000 đ</td>
+                                <td>
+                                    <a th:href="@{/admin/bookings/approve/{id}(id=${booking.id})}" class="btn btn-sm btn-success me-1"><i class="fas fa-check"></i></a>
+                                    <a th:href="@{/admin/bookings/reject/{id}(id=${booking.id})}" class="btn btn-sm btn-danger"><i class="fas fa-times"></i></a>
+                                </td>
+                            </tr>
+                            <tr th:if="${pendingBookings.isEmpty()}">
+                                <td colspan="6" class="text-center py-3 text-muted">Không có yêu cầu nào.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Danh sách Booking Hôm nay -->
+        <div class="card border-0 shadow-lg mb-4">
+            <div class="card-header bg-transparent border-bottom">
+                <!-- ĐỔI MÀU CHỮ VÀ ICON THÀNH ĐEN -->
+                <h5 class="mb-0 text-dark"><i class="fas fa-list-alt me-2 text-dark"></i> Booking Hôm nay</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive table-responsive-scroll">
+                    <table class="table table-dark-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Khách</th>
+                                <th>Sân</th>
+                                <th>Giờ</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="booking : ${activeBookings}">
+                                <td th:text="${'#' + booking.id}">#123</td>
+                                <td th:text="${booking.user.fullName}">User</td>
+                                <td th:text="${booking.pitch.name}">Sân A</td>
+                                <td th:text="${#temporals.format(booking.startTime, 'HH:mm') + ' - ' + #temporals.format(booking.endTime, 'HH:mm')}">17:00 - 18:30</td>
+                                <td>
+                                    <span th:if="${booking.status.name() == 'CONFIRMED'}" class="badge bg-success">Đã duyệt</span>
+                                    <span th:if="${booking.status.name() == 'PENDING'}" class="badge bg-warning text-dark">Chờ duyệt</span>
+                                    <span th:if="${booking.status.name() == 'COMPLETED'}" class="badge bg-secondary">Xong</span>
+                                    <span th:if="${booking.status.name() == 'CANCELLED'}" class="badge bg-danger">Hủy</span>
+                                    <span th:if="${booking.status.name() == 'SWAPPED'}" class="badge bg-info text-dark">Đã đổi sân</span>
+                                    <span th:if="${booking.status.name() == 'REFUNDED'}" class="badge bg-primary">Đã hoàn tiền</span>
+
+                                    <div th:if="${booking.isCheckedIn}" class="mt-1">
+                                        <span class="badge bg-info text-dark" style="background-color: #721114 !important; color: #fff !important;">
+                                            <i class="fas fa-check-circle"></i> Đã Check-in
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <!-- CHỈ HIỆN NÚT KHI ĐƠN ĐÃ DUYỆT (CONFIRMED) -->
+                                    <div th:if="${booking.status.name() == 'CONFIRMED'}">
+
+                                        <!-- NÚT MỞ SÂN (CHECK-IN): Hiện khi chưa check-in và chưa quá giờ kết thúc -->
+                                        <button th:unless="${booking.isCheckedIn}"
+                                                th:if="${now.isBefore(booking.endTime)}"
+                                                class="btn btn-sm btn-success me-1"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#checkInModal"
+                                                th:data-id="${booking.id}"
+                                                onclick="openCheckInModal(this)">
+                                            <i class="fas fa-door-open"></i> Mở sân
+                                        </button>
+
+                                        <!-- NÚT GIA HẠN & ĐỔI SÂN: Hiện khi chưa quá giờ kết thúc -->
+                                        <th:block th:if="${now.isBefore(booking.endTime)}">
+                                            <button class="btn btn-sm btn-outline-info me-1"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#adminExtendModal"
+                                                    th:data-id="${booking.id}"
+                                                    onclick="openAdminExtendModal(this)">
+                                                <i class="fas fa-clock"></i> Gia hạn
+                                            </button>
+                                            <a th:href="@{/admin/bookings/swap-options/{id}(id=${booking.id})}" class="btn btn-sm btn-outline-primary me-1">
+                                                <i class="fas fa-exchange-alt"></i> Đổi sân
+                                            </a>
+                                        </th:block>
+
+                                        <!-- NÚT KẾT THÚC SỚM: Hiện khi ĐANG TRONG GIỜ ĐÁ (Start < Now < End) -->
+                                        <a th:if="${now.isAfter(booking.startTime) and now.isBefore(booking.endTime)}"
+                                           th:href="@{/admin/bookings/finish/{id}(id=${booking.id})}"
+                                           class="btn btn-sm btn-outline-warning me-1"
+                                           onclick="return confirm('Xác nhận kết thúc sớm và tính tiền?');">
+                                            <i class="fas fa-stop-circle"></i> Kết thúc sớm
+                                        </a>
+
+                                        <!-- NÚT XÓA (HỦY): Chỉ hiện khi CHƯA ĐẾN GIỜ ĐÁ -->
+                                        <a th:if="${now.isBefore(booking.startTime)}"
+                                           th:href="@{/admin/bookings/reject/{id}(id=${booking.id})}"
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Bạn có chắc chắn muốn xóa (hủy) đơn đặt sân này không?');">
+                                            <i class="fas fa-trash-alt"></i> Xóa
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Lịch tổng quan -->
+        <h4 class="mb-3">Lịch sân tổng quan</h4>
+        <div class="card border-0 shadow-lg">
+            <div class="card-body p-4">
+                <div id='calendar'></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CHECK-IN VÉ -->
+    <div class="modal fade" id="checkInModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-success"><i class="fas fa-qrcode me-2"></i> Mở sân (Check-in)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/bookings/checkin}" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Nhập mã vé (Ticket Code):</label>
+                            <input type="text" name="ticketCode" id="checkInTicketCode" class="form-control text-uppercase"
+                                   placeholder="VD: A1B2C3D4" required autofocus>
+                        </div>
+                        <div class="alert alert-info" style="font-size: 0.9rem;">
+                            <i class="fas fa-info-circle me-1"></i> Yêu cầu khách hàng đọc mã vé trên ứng dụng.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="btn btn-success fw-bold">Xác nhận</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GIA HẠN CHO ADMIN -->
+    <div class="modal fade" id="adminExtendModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">Gia hạn Booking</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/bookings/extend}" method="post">
+                    <div class="modal-body">
+                        <input type="hidden" name="bookingId" id="adminExtendBookingId">
+                        <div class="mb-3">
+                            <label class="form-label">Thời gian thêm:</label>
+                            <select name="extraMinutes" class="form-select">
+                                <option value="15">15 Phút</option>
+                                <option value="30">30 Phút</option>
+                                <option value="45">45 Phút</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-info fw-bold text-white">Xác nhận</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openAdminExtendModal(button) {
+            document.getElementById('adminExtendBookingId').value = button.getAttribute('data-id');
+        }
+
+        function openCheckInModal(button) {
+            // Clear input khi mở modal
+            document.getElementById('checkInTicketCode').value = '';
+            // Có thể thêm logic để lấy ID booking nếu cần, nhưng ở đây ta check-in bằng mã vé nên không cần ID
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridDay', // ĐỔI SANG LỊCH TUẦN
+                locale: 'vi', // TIẾNG VIỆT
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                themeSystem: 'bootstrap5',
+                events: '/admin/api/bookings',
+                slotMinTime: '06:00:00', // GIỜ BẮT ĐẦU
+                slotMaxTime: '23:00:00', // GIỜ KẾT THÚC
+                allDaySlot: false,
+                slotLabelFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                },
+                eventTimeFormat: { // Hiển thị giờ trên sự kiện
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                },
+                eventDidMount: function(info) {
+                    var tooltip = new bootstrap.Tooltip(info.el, {
+                        title: info.event.extendedProps.description,
+                        placement: 'top',
+                        trigger: 'hover',
+                        container: 'body',
+                        html: true
+                    });
+                }
+            });
+            calendar.render();
+        });
+    </script>
+
+    <style>
+        .tooltip-inner {
+            background-color: #721114;
+            color: #fff;
+            border: 1px solid #a3161a;
+            text-align: left;
+            max-width: 300px;
+            padding: 10px;
+        }
+        .tooltip-arrow::before {
+            border-top-color: #721114 !important;
+        }
+    </style>
+
+    <!-- Admin Scripts -->
+    <script th:src="@{/js/admin.js}"></script>
+</body>
+</html>
