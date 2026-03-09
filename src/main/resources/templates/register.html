@@ -160,6 +160,9 @@
                 <div class="input-group">
                     <span class="input-group-text"><i class="fas fa-lock"></i></span>
                     <input type="password" th:field="*{password}" class="form-control" placeholder="Nhập mật khẩu" required>
+                    <button class="btn btn-outline-secondary password-toggle" type="button" style="border-color: #ddd;">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
             </div>
             <div class="mb-3">
@@ -167,6 +170,9 @@
                 <div class="input-group">
                     <span class="input-group-text"><i class="fas fa-lock"></i></span>
                     <input type="password" name="confirmPassword" class="form-control" placeholder="Nhập lại mật khẩu" required>
+                    <button class="btn btn-outline-secondary password-toggle" type="button" style="border-color: #ddd;">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
             </div>
 
@@ -178,5 +184,6 @@
         </div>
     </div>
 
+    <script th:src="@{/js/main.js}"></script>
 </body>
 </html>
