@@ -60,10 +60,10 @@ public class BookingService {
                 throw new RuntimeException("Khung giờ này đã kết thúc. Vui lòng chọn khung giờ khác.");
             }
             long remainingMinutes = Duration.between(now, end).toMinutes();
-            if (remainingMinutes >= 60) {
+            if (remainingMinutes >= 15) {
                 start = now;
             } else {
-                throw new RuntimeException("Đã quá muộn để đặt khung giờ này (còn dưới 60 phút). Vui lòng chọn khung giờ tiếp theo.");
+                throw new RuntimeException("Đã quá muộn để đặt khung giờ này. Vui lòng chọn khung giờ tiếp theo.");
             }
         }
 
