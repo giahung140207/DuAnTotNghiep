@@ -53,14 +53,12 @@ public class BookingService {
     @Transactional
     public Booking createBooking(Long userId, Long pitchId, LocalDateTime start, LocalDateTime end) {
         LocalDateTime now = LocalDateTime.now();
-
-        // 1. Xử lý logic thời gian (Cho phép đặt trễ nếu còn > 60p)
         if (start.isBefore(now)) {
             if (end.isBefore(now)) {
                 throw new RuntimeException("Khung giờ này đã kết thúc. Vui lòng chọn khung giờ khác.");
             }
             long remainingMinutes = Duration.between(now, end).toMinutes();
-            if (remainingMinutes >= 15) {
+            if (remainingMinutes >= 60) {
                 start = now;
             } else {
                 throw new RuntimeException("Đã quá muộn để đặt khung giờ này. Vui lòng chọn khung giờ tiếp theo.");
