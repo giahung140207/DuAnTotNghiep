@@ -292,24 +292,19 @@ public class AdminController {
         return "redirect:/admin/users";
     }
 
-    // SỬA USER
+    // SỬA USER (KHÔNG CÒN CHO PHÉP ĐỔI MẬT KHẨU TỪ ĐÂY NỮA)
     @PostMapping("/users/update")
     public String updateUser(@RequestParam Long id, 
                              @RequestParam String fullName, 
                              @RequestParam String email, 
                              @RequestParam String phone,
-                             @RequestParam(required = false) String password,
                              RedirectAttributes redirectAttributes) {
         try {
             User user = userService.getUserById(id);
             user.setFullName(fullName);
             user.setEmail(email);
             user.setPhone(phone);
-            if (password != null && !password.isEmpty()) {
-                userService.changePassword(id, null, password); // Cần sửa lại hàm changePassword để cho phép admin đổi không cần pass cũ
-                // Hoặc set trực tiếp nếu ở đây có PasswordEncoder
-                // Tạm thời: Admin đổi pass cần logic riêng hoặc bỏ qua check pass cũ
-            }
+            // Đã xóa phần xử lý đổi mật khẩu ở đây
             userService.updateUser(user);
             redirectAttributes.addFlashAttribute("success", "Cập nhật thông tin thành công!");
         } catch (Exception e) {
@@ -512,12 +507,22 @@ public class AdminController {
         return "admin/admin-chat-iframe";
     }
 
+    // API TRẢ VỀ FRAGMENT TIN NHẮN CHO ADMIN SUPPORT CHÍNH
     @GetMapping("/chat-messages")
     public String getAdminMessagesFragment(Model model, @RequestParam Long userId) {
         supportMessageService.markAsRead(userId);
         model.addAttribute("messages", supportMessageService.getMessagesByUser(userId));
+        return "admin/support :: messageList";
+    }
+
+    // API TRẢ VỀ FRAGMENT TIN NHẮN CHO IFRAME NHỎ (Ở CÁC TRANG KHÁC)
+    @GetMapping("/chat-messages-iframe")
+    public String getAdminMessagesFragmentIframe(Model model, @RequestParam Long userId) {
+        supportMessageService.markAsRead(userId);
+        model.addAttribute("messages", supportMessageService.getMessagesByUser(userId));
         return "admin/admin-chat-iframe :: messageList";
     }
+
 
     @PostMapping("/chat-reply-ajax")
     @ResponseBody

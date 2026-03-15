@@ -112,8 +112,8 @@
             var userId = $('#targetUserId').val();
             var isAtBottom = (chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight) < 50;
 
-            // ĐỔI URL API
-            $.get('/admin/chat-messages?userId=' + userId, function(data) {
+            // ĐỔI LẠI URL DO API Ở CONTROLLER ĐÃ BỊ SỬA DÙNG CHO SUPPORT CHÍNH
+            $.get('/admin/chat-messages-iframe?userId=' + userId, function(data) {
                  $('#chatBox').html(data);
                  if (isAtBottom || forceScroll) {
                      scrollToBottom();

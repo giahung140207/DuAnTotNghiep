@@ -1,5 +1,6 @@
 package poly.edu.duantotnghiep_nhom2.controller;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,12 +42,44 @@ public class UserController {
                 throw new Exception("Mật khẩu xác nhận không khớp!");
             }
             userService.register(user);
-            redirectAttributes.addFlashAttribute("success", "Đăng ký thành công! Vui lòng đăng nhập.");
-            return "redirect:/login";
+            redirectAttributes.addFlashAttribute("success", "Đăng ký thành công! Vui lòng kiểm tra email để lấy mã OTP.");
+            return "redirect:/verify-otp?username=" + user.getUsername();
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/register";
         }
+    }
+
+    @GetMapping("/verify-otp")
+    public String showVerifyOtpPage(@RequestParam("username") String username, Model model) {
+        model.addAttribute("username", username);
+        return "verify-otp";
+    }
+
+    @PostMapping("/verify-otp")
+    public String processVerifyOtp(@RequestParam("username") String username,
+                                   @RequestParam("otpCode") String otpCode,
+                                   RedirectAttributes redirectAttributes) {
+        try {
+            userService.verifyOtp(username, otpCode);
+            redirectAttributes.addFlashAttribute("success", "Kích hoạt tài khoản thành công! Bạn có thể đăng nhập.");
+            return "redirect:/login";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/verify-otp?username=" + username;
+        }
+    }
+
+    @PostMapping("/resend-otp")
+    public String processResendOtp(@RequestParam("username") String username,
+                                   RedirectAttributes redirectAttributes) {
+        try {
+            userService.resendOtp(username);
+            redirectAttributes.addFlashAttribute("success", "Đã gửi lại mã OTP mới vào email của bạn.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/verify-otp?username=" + username;
     }
 
     @GetMapping("/profile")
@@ -58,7 +91,6 @@ public class UserController {
         String username = principal.getName();
         User user = userService.findByUsername(username).orElseThrow();
 
-        // Lấy lịch sử đặt sân
         List<Booking> history = bookingService.getHistoryByUser(user.getId());
 
         model.addAttribute("user", user);
@@ -67,7 +99,6 @@ public class UserController {
         return "profile";
     }
 
-    // API trả về Fragment Bảng lịch sử (để AJAX load lại)
     @GetMapping("/profile/bookings-fragment")
     public String getBookingsFragment(Model model, Principal principal) {
         if (principal == null) return "";
@@ -75,10 +106,9 @@ public class UserController {
         User user = userService.findByUsername(username).orElseThrow();
         List<Booking> history = bookingService.getHistoryByUser(user.getId());
         model.addAttribute("bookings", history);
-        return "profile :: bookingTable"; // Trả về fragment có th:fragment="bookingTable"
+        return "profile :: bookingTable"; 
     }
 
-    // API trả về Fragment Thông tin ví & Điểm (để AJAX load lại)
     @GetMapping("/profile/wallet-fragment")
     public String getWalletFragment(Model model, Principal principal) {
         if (principal == null) return "";
@@ -86,14 +116,12 @@ public class UserController {
         User user = userService.findByUsername(username).orElseThrow();
         model.addAttribute("user", user);
         
-        // Cần lấy thêm booking mới nhất để hiện mã vé nếu có
         List<Booking> history = bookingService.getHistoryByUser(user.getId());
         model.addAttribute("bookings", history);
         
-        return "profile :: walletInfo"; // Trả về fragment có th:fragment="walletInfo"
+        return "profile :: walletInfo"; 
     }
 
-    // Khách hàng tự nạp tiền
     @PostMapping("/user/topup")
     public String userTopUp(@RequestParam BigDecimal amount, Principal principal, RedirectAttributes redirectAttributes) {
         if (principal == null) return "redirect:/login";
@@ -111,7 +139,6 @@ public class UserController {
         return "redirect:/profile";
     }
 
-    // Cập nhật thông tin cá nhân
     @PostMapping("/user/update")
     public String updateProfile(@ModelAttribute User updatedUser, Principal principal, RedirectAttributes redirectAttributes) {
         if (principal == null) return "redirect:/login";
@@ -135,13 +162,14 @@ public class UserController {
         return "redirect:/profile";
     }
 
-    // Đổi mật khẩu
+    // YÊU CẦU ĐỔI MẬT KHẨU (Khách Hàng)
     @PostMapping("/user/change-password")
-    public String changePassword(@RequestParam String oldPassword, 
-                                 @RequestParam String newPassword, 
-                                 @RequestParam String confirmPassword,
-                                 Principal principal, 
-                                 RedirectAttributes redirectAttributes) {
+    public String requestChangePassword(@RequestParam String oldPassword, 
+                                        @RequestParam String newPassword, 
+                                        @RequestParam String confirmPassword,
+                                        Principal principal, 
+                                        HttpSession session,
+                                        RedirectAttributes redirectAttributes) {
         if (principal == null) return "redirect:/login";
 
         if (!newPassword.equals(confirmPassword)) {
@@ -150,15 +178,79 @@ public class UserController {
         }
 
         try {
-            String username = principal.getName();
-            User user = userService.findByUsername(username).orElseThrow();
+            User user = userService.findByUsername(principal.getName()).orElseThrow();
             
-            userService.changePassword(user.getId(), oldPassword, newPassword);
+            // 1. Kiểm tra mật khẩu cũ trước
+            userService.checkOldPassword(user.getId(), oldPassword, newPassword);
             
-            redirectAttributes.addFlashAttribute("success");
+            // 2. Lưu mật khẩu mới tạm vào Session
+            session.setAttribute("TEMP_NEW_PASSWORD", newPassword);
+            
+            // 3. Tạo và gửi OTP
+            userService.generatePasswordOtp(user.getId());
+            
+            redirectAttributes.addFlashAttribute("success", "Mã xác nhận đã được gửi đến email của bạn.");
+            return "redirect:/verify-password-otp";
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/profile";
+        }
+    }
+
+    // TRANG NHẬP OTP ĐỔI MẬT KHẨU
+    @GetMapping("/verify-password-otp")
+    public String showVerifyPasswordOtpPage(Principal principal) {
+        if (principal == null) return "redirect:/login";
+        return "verify-password-otp";
+    }
+
+    // XỬ LÝ NHẬP OTP ĐỔI MẬT KHẨU
+    @PostMapping("/verify-password-otp")
+    public String processVerifyPasswordOtp(@RequestParam("otpCode") String otpCode,
+                                           Principal principal,
+                                           HttpSession session,
+                                           RedirectAttributes redirectAttributes) {
+        if (principal == null) return "redirect:/login";
+
+        try {
+            User user = userService.findByUsername(principal.getName()).orElseThrow();
+            
+            // 1. Xác thực OTP
+            if (userService.verifyPasswordOtp(user.getId(), otpCode)) {
+                // 2. Lấy mật khẩu mới từ Session
+                String newPassword = (String) session.getAttribute("TEMP_NEW_PASSWORD");
+                if (newPassword == null) {
+                    throw new RuntimeException("Phiên làm việc đã hết hạn. Vui lòng thử lại.");
+                }
+                
+                // 3. Ép đổi mật khẩu
+                userService.forceChangePassword(user.getId(), newPassword);
+                
+                // 4. Xóa session
+                session.removeAttribute("TEMP_NEW_PASSWORD");
+                
+                redirectAttributes.addFlashAttribute("success", "Đổi mật khẩu thành công!");
+                return "redirect:/profile";
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/verify-password-otp";
+        }
+        return "redirect:/profile";
+    }
+    
+    // GỬI LẠI OTP ĐỔI MẬT KHẨU
+    @PostMapping("/resend-password-otp")
+    public String resendPasswordOtp(Principal principal, RedirectAttributes redirectAttributes) {
+        if (principal == null) return "redirect:/login";
+        try {
+            User user = userService.findByUsername(principal.getName()).orElseThrow();
+            userService.resendPasswordOtp(user.getId());
+            redirectAttributes.addFlashAttribute("success", "Đã gửi lại mã OTP vào email của bạn.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/profile";
+        return "redirect:/verify-password-otp";
     }
 }

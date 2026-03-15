@@ -39,7 +39,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/home", "/index").permitAll()
                         .requestMatchers("/facilities/**", "/facilities/search").permitAll()
-                        .requestMatchers("/register", "/login", "/gen-pass").permitAll()
+                        // Thêm quyền truy cập cho quên mật khẩu
+                        .requestMatchers("/register", "/login", "/gen-pass", "/verify-otp", "/resend-otp", "/forgot-password", "/reset-password").permitAll()
+                        .requestMatchers("/verify-password-otp", "/resend-password-otp").authenticated()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/uploads/**", "/static/**", "/favicon.ico").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/booking/**", "/profile/**", "/support/**", "/review/**", "/user/**").authenticated()
@@ -74,8 +76,6 @@ public class SecurityConfig {
             if (roles.contains("ROLE_ADMIN")) {
                 response.sendRedirect("/admin/dashboard");
             } else {
-                // Dùng handler mặc định của Spring cho các role khác
-                // Nó sẽ tự động chuyển hướng về trang đã lưu trước đó
                 new SavedRequestAwareAuthenticationSuccessHandler().onAuthenticationSuccess(request, response, authentication);
             }
         };

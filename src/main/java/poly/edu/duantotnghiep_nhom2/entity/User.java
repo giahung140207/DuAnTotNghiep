@@ -52,6 +52,16 @@ public class User { // Bỏ extends BaseEntity
     @Column(name = "last_point_update")
     private LocalDateTime lastPointUpdate; // Thời gian cập nhật điểm cuối cùng
 
+    // --- XÁC THỰC EMAIL ---
+    @Column(name = "is_active", columnDefinition = "bit default 0")
+    private Boolean isActive = false;
+
+    @Column(name = "otp_code", length = 10)
+    private String otpCode;
+
+    @Column(name = "otp_expiry_time")
+    private LocalDateTime otpExpiryTime;
+
     // --- GETTERS AND SETTERS ---
 
     public Long getId() {
@@ -148,5 +158,29 @@ public class User { // Bỏ extends BaseEntity
 
     public void setLastPointUpdate(LocalDateTime lastPointUpdate) {
         this.lastPointUpdate = lastPointUpdate;
+    }
+
+    public Boolean getIsActive() {
+        return isActive == null ? false : isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public String getOtpCode() {
+        return otpCode;
+    }
+
+    public void setOtpCode(String otpCode) {
+        this.otpCode = otpCode;
+    }
+
+    public LocalDateTime getOtpExpiryTime() {
+        return otpExpiryTime;
+    }
+
+    public void setOtpExpiryTime(LocalDateTime otpExpiryTime) {
+        this.otpExpiryTime = otpExpiryTime;
     }
 }

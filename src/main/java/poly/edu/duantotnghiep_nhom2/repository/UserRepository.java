@@ -3,7 +3,6 @@ import poly.edu.duantotnghiep_nhom2.entity.User;
 import poly.edu.duantotnghiep_nhom2.entity.enums.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import poly.edu.duantotnghiep_nhom2.entity.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +12,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Dùng cho chức năng đăng nhập (Login)
     Optional<User> findByUsername(String username);
+
+    // Tìm kiếm user theo email (Dùng cho quên mật khẩu)
+    Optional<User> findByEmail(String email);
 
     // Dùng để validate khi đăng ký (tránh trùng lặp)
     boolean existsByUsername(String username);
