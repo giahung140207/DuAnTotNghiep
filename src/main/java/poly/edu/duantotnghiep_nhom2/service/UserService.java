@@ -136,6 +136,31 @@ public class UserService {
                 + "Vui lòng không chia sẻ mã này cho bất kỳ ai!";
         emailService.sendSimpleMessage(user.getEmail(), "Mã xác nhận kích hoạt tài khoản (Mới)", emailContent);
     }
+    
+    // Tạo lại OTP kích hoạt từ Identifier (Username hoặc Email)
+    @Transactional
+    public String generateResendActivationOtp(String identifier) {
+        User user = userRepository.findByUsername(identifier)
+                .orElseGet(() -> userRepository.findByEmail(identifier)
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản nào khớp với thông tin bạn cung cấp!")));
+
+        if (user.getIsActive()) {
+            throw new RuntimeException("Tài khoản này đã được kích hoạt rồi. Bạn có thể đăng nhập bình thường.");
+        }
+
+        String newOtp = generateOtp();
+        user.setOtpCode(newOtp);
+        user.setOtpExpiryTime(LocalDateTime.now().plusMinutes(5));
+        userRepository.save(user);
+
+        String emailContent = "Xin chào " + user.getFullName() + ",\n\n"
+                + "Bạn vừa yêu cầu gửi lại mã xác nhận. Mã OTP kích hoạt tài khoản của bạn là: " + newOtp + "\n"
+                + "Mã này sẽ hết hạn sau 5 phút.\n\n"
+                + "Vui lòng không chia sẻ mã này cho bất kỳ ai!";
+        emailService.sendSimpleMessage(user.getEmail(), "Mã xác nhận kích hoạt tài khoản (Mới)", emailContent);
+        
+        return user.getUsername();
+    }
 
     // 2. Nạp tiền vào ví
     @Transactional

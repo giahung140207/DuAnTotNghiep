@@ -100,4 +100,23 @@ public class HomeController {
             return "reset-password-otp";
         }
     }
+
+    // --- GỬI LẠI MÃ KÍCH HOẠT (CHO TÀI KHOẢN ĐÃ ĐĂNG KÝ NHƯNG CHƯA KÍCH HOẠT) ---
+    @GetMapping("/resend-activation")
+    public String showResendActivationForm() {
+        return "resend-activation";
+    }
+
+    @PostMapping("/resend-activation")
+    public String processResendActivation(@RequestParam("identifier") String identifier, RedirectAttributes redirectAttributes) {
+        try {
+            // Tìm user bằng username hoặc email và tạo lại OTP kích hoạt
+            String username = userService.generateResendActivationOtp(identifier);
+            redirectAttributes.addFlashAttribute("success", "Đã gửi lại mã kích hoạt thành công!");
+            return "redirect:/verify-otp?username=" + username;
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/resend-activation";
+        }
+    }
 }

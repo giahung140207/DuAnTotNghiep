@@ -39,8 +39,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/home", "/index").permitAll()
                         .requestMatchers("/facilities/**", "/facilities/search").permitAll()
-                        // Thêm quyền truy cập cho quên mật khẩu
-                        .requestMatchers("/register", "/login", "/gen-pass", "/verify-otp", "/resend-otp", "/forgot-password", "/reset-password").permitAll()
+                        // Thêm quyền truy cập cho resend-activation
+                        .requestMatchers("/register", "/login", "/gen-pass", "/verify-otp", "/resend-otp", "/forgot-password", "/reset-password", "/resend-activation").permitAll()
                         .requestMatchers("/verify-password-otp", "/resend-password-otp").authenticated()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/uploads/**", "/static/**", "/favicon.ico").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")

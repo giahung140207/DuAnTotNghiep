@@ -60,20 +60,20 @@ public class BookingController {
             else if (hour == 14) slotEndTime = LocalDateTime.of(date, LocalTime.of(16, 0));
             else if (hour == 18) slotEndTime = LocalDateTime.of(date, LocalTime.of(20, 0));
             else {
-                // Nếu chọn giờ lạ (không trong khung), mặc định cộng duration (hoặc báo lỗi)
+                // Nếu chọn giờ lạ (không trong khung), mặc định cộng duration
                 slotEndTime = startDateTime.plusMinutes(duration);
             }
 
-            // Tính giờ kết thúc dự kiến
-            LocalDateTime endDateTime = startDateTime.plusMinutes(duration);
+            // Gọi Service (Service sẽ tự động xử lý nếu startDateTime < now, ví dụ dời startDateTime về now)
+            // LƯU Ý: Phải cho phép Service cắt luôn thời gian kết thúc (endDateTime) nếu nó vượt quá slotEndTime
+            
+            // Tính giờ kết thúc dự kiến ban đầu (Có thể bị lố)
+            LocalDateTime expectedEndDateTime = startDateTime.plusMinutes(duration);
 
-            // Nếu giờ kết thúc vượt quá khung giờ -> Cắt xuống bằng khung giờ
-            if (endDateTime.isAfter(slotEndTime)) {
-                endDateTime = slotEndTime;
-            }
+            // Chặn không cho endDateTime vượt quá giới hạn của ca đá
+            LocalDateTime finalEndDateTime = expectedEndDateTime.isAfter(slotEndTime) ? slotEndTime : expectedEndDateTime;
 
-            // Gọi Service (Service sẽ tự động xử lý nếu startDateTime < now)
-            bookingService.createBooking(user.getId(), pitchId, startDateTime, endDateTime);
+            bookingService.createBooking(user.getId(), pitchId, startDateTime, finalEndDateTime);
 
             redirectAttributes.addFlashAttribute("success", "Đặt sân thành công! Vui lòng chờ xác nhận.");
         } catch (Exception e) {
