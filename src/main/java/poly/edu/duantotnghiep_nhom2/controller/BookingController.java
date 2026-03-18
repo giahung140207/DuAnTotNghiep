@@ -12,6 +12,7 @@ import poly.edu.duantotnghiep_nhom2.service.BookingService;
 import poly.edu.duantotnghiep_nhom2.service.PitchService;
 import poly.edu.duantotnghiep_nhom2.service.UserService;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -41,47 +42,98 @@ public class BookingController {
             Principal principal,
             RedirectAttributes redirectAttributes) {
 
+        // Nếu chưa đăng nhập
         if (principal == null) {
             return "redirect:/login";
         }
 
         try {
+
             String username = principal.getName();
-            User user = userService.findByUsername(username).orElseThrow();
+            User user = userService.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
             LocalDateTime startDateTime = LocalDateTime.of(date, startTime);
-            
-            // LOGIC MỚI: XÁC ĐỊNH GIỜ KẾT THÚC CỦA KHUNG GIỜ (SLOT END TIME)
-            // Các khung: 7-9, 10-12, 14-16, 18-20
+
+        /* =============================
+           XÁC ĐỊNH KHUNG GIỜ CỦA SLOT
+        ============================== */
             LocalDateTime slotEndTime;
-            int hour = startTime.getHour();
-            if (hour == 7) slotEndTime = LocalDateTime.of(date, LocalTime.of(9, 0));
-            else if (hour == 10) slotEndTime = LocalDateTime.of(date, LocalTime.of(12, 0));
-            else if (hour == 14) slotEndTime = LocalDateTime.of(date, LocalTime.of(16, 0));
-            else if (hour == 18) slotEndTime = LocalDateTime.of(date, LocalTime.of(20, 0));
-            else {
-                // Nếu chọn giờ lạ (không trong khung), mặc định cộng duration
-                slotEndTime = startDateTime.plusMinutes(duration);
+
+            switch (startTime.getHour()) {
+                case 7:
+                    slotEndTime = LocalDateTime.of(date, LocalTime.of(9, 0));
+                    break;
+                case 10:
+                    slotEndTime = LocalDateTime.of(date, LocalTime.of(12, 0));
+                    break;
+                case 14:
+                    slotEndTime = LocalDateTime.of(date, LocalTime.of(16, 0));
+                    break;
+                case 18:
+                    slotEndTime = LocalDateTime.of(date, LocalTime.of(20, 0));
+                    break;
+                default:
+                    slotEndTime = startDateTime.plusMinutes(duration);
             }
 
-            // Gọi Service (Service sẽ tự động xử lý nếu startDateTime < now, ví dụ dời startDateTime về now)
-            // LƯU Ý: Phải cho phép Service cắt luôn thời gian kết thúc (endDateTime) nếu nó vượt quá slotEndTime
-            
-            // Tính giờ kết thúc dự kiến ban đầu (Có thể bị lố)
-            LocalDateTime expectedEndDateTime = startDateTime.plusMinutes(duration);
+        /* =============================
+           TÍNH GIỜ KẾT THÚC
+        ============================== */
+            LocalDateTime endDateTime = startDateTime.plusMinutes(duration);
 
-            // Chặn không cho endDateTime vượt quá giới hạn của ca đá
-            LocalDateTime finalEndDateTime = expectedEndDateTime.isAfter(slotEndTime) ? slotEndTime : expectedEndDateTime;
+            if (endDateTime.isAfter(slotEndTime)) {
+                endDateTime = slotEndTime;
+            }
 
-            bookingService.createBooking(user.getId(), pitchId, startDateTime, finalEndDateTime);
+        /* =============================
+           TẠO BOOKING
+        ============================== */
+            bookingService.createBooking(
+                    user.getId(),
+                    pitchId,
+                    startDateTime,
+                    endDateTime
+            );
 
-            redirectAttributes.addFlashAttribute("success", "Đặt sân thành công! Vui lòng chờ xác nhận.");
+            redirectAttributes.addFlashAttribute(
+                    "success",
+                    "✅ Đặt sân thành công! Vui lòng chờ admin xác nhận."
+            );
+
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+
+            redirectAttributes.addFlashAttribute(
+                    "error",
+                    "❌ Không thể đặt sân: " + (e.getMessage() != null ? e.getMessage() : "Lỗi hệ thống")
+            );
+
             return "redirect:/pitches/" + pitchId;
         }
 
         return "redirect:/profile";
+    }
+
+    @PostMapping("/confirm")
+    public String confirmBooking(
+            @RequestParam Long pitchId,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
+            @RequestParam @DateTimeFormat(pattern = "HH:mm") LocalTime startTime,
+            @RequestParam Integer duration,
+            Model model) {
+
+        Pitch pitch = pitchService.getPitchById(pitchId);
+
+        LocalDateTime start = LocalDateTime.of(date, startTime);
+        LocalDateTime end = start.plusMinutes(duration);
+
+        model.addAttribute("pitch", pitch);
+        model.addAttribute("date", date);
+        model.addAttribute("startTime", startTime);
+        model.addAttribute("endTime", end.toLocalTime());
+        model.addAttribute("duration", duration);
+
+        return "booking-confirm";
     }
 
     @GetMapping("/cancel/{id}")
