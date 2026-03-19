@@ -75,7 +75,7 @@ public class Booking extends BaseEntity {
         }
     }
 
-    // --- GETTERS AND SETTERS ---
+
 
     public User getUser() {
         return user;
