@@ -8,7 +8,7 @@ import poly.edu.duantotnghiep_nhom2.entity.Pitch;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+
 public class PitchStatusDTO {
     private Pitch pitch;
     private String currentStatus; // "FREE", "OCCUPIED", "MAINTENANCE"
