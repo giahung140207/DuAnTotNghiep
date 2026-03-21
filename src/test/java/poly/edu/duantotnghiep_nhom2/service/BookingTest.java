@@ -33,9 +33,11 @@ class BookingTest {
     @Mock
     private InvoiceRepository invoiceRepository;
 
+
     @InjectMocks
     private BookingService bookingService;
-
+    @InjectMocks
+    private DashboardService dashboardService;
     private User user;
     private Pitch pitch;
 
@@ -143,5 +145,16 @@ class BookingTest {
         );
 
         assertEquals("Sân đang bảo trì.", ex.getMessage());
+    }
+    @Test
+    void testCountBookingsToday_RunSuccessfully() {
+        when(bookingRepository.countBookingsInDay(any(), any(), any()))
+                .thenReturn(10L);
+
+        long result = dashboardService.countBookingsToday();
+
+        assertTrue(result >= 0);
+
+        verify(bookingRepository).countBookingsInDay(any(), any(), any());
     }
 }
