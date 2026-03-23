@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+
 public class AdminNotificationDTO {
     private long unreadMessages;
     private long pendingBookings;
