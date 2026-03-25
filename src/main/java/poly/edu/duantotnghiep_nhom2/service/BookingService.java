@@ -206,7 +206,9 @@ public class BookingService {
                 booking.setPaymentStatus("PAID");
                 booking.setTicketCode(oldTicketCode); // Dùng lại mã vé cũ
                 booking.setNote("Đổi từ sân " + oldBooking.getPitch().getName() + " sang " + booking.getPitch().getName());
-                booking.setCheckedIn(true); // Auto check-in
+                
+                // SỬA Ở ĐÂY: Kế thừa trạng thái Check-in của đơn cũ
+                booking.setCheckedIn(oldBooking.isCheckedIn()); 
             }
         } else {
             // --- XỬ LÝ DUYỆT ĐƠN THƯỜNG ---
@@ -227,12 +229,16 @@ public class BookingService {
     @Transactional
     public void cancelBooking(Long bookingId, Long userId) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new RuntimeException("Booking not found"));
-        if (LocalDateTime.now().plusHours(12).isAfter(booking.getStartTime())) {
-            throw new RuntimeException("Chỉ được hủy sân trước giờ đá 12 tiếng.");
+        
+        // Hủy trước 2 tiếng (Thay vì 12 tiếng)
+        if (LocalDateTime.now().plusHours(2).isAfter(booking.getStartTime())) {
+            throw new RuntimeException("Chỉ được tự hủy sân trước giờ đá ít nhất 2 tiếng.");
         }
         
         if ("PAID".equals(booking.getPaymentStatus())) {
             BigDecimal totalPaid = booking.getTotalPrice();
+            
+            // Hoàn tiền 70% và phạt 30% cho khách tự hủy
             BigDecimal refundAmount = totalPaid.multiply(new BigDecimal("0.70")).setScale(0, RoundingMode.HALF_UP);
             BigDecimal cancellationFee = totalPaid.subtract(refundAmount);
 
@@ -240,10 +246,11 @@ public class BookingService {
             user.setBalance(user.getBalance().add(refundAmount));
             userRepository.save(user);
             
+            // Lưu hóa đơn phạt
             createCancellationInvoice(booking, cancellationFee);
 
             booking.setPaymentStatus("REFUNDED");
-            booking.setNote("Hủy sân. Hoàn 70%: " + refundAmount + ". Phí 30%: " + cancellationFee);
+            booking.setNote("Khách tự hủy sân. Hoàn 70%: " + refundAmount + " đ. Phí 30%: " + cancellationFee + " đ.");
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
@@ -259,17 +266,14 @@ public class BookingService {
         
         if ("PAID".equals(booking.getPaymentStatus())) {
             BigDecimal totalPaid = booking.getTotalPrice();
-            BigDecimal refundAmount = totalPaid.multiply(new BigDecimal("0.70")).setScale(0, RoundingMode.HALF_UP);
-            BigDecimal cancellationFee = totalPaid.subtract(refundAmount);
 
+            // Lỗi do sân -> Hoàn tiền 100% cho khách, KHÔNG PHẠT
             User user = booking.getUser();
-            user.setBalance(user.getBalance().add(refundAmount));
+            user.setBalance(user.getBalance().add(totalPaid));
             userRepository.save(user);
-            
-            createCancellationInvoice(booking, cancellationFee);
 
             booking.setPaymentStatus("REFUNDED");
-            booking.setNote("Admin hủy. Hoàn 70%: " + refundAmount + ". Phí 30%: " + cancellationFee);
+            booking.setNote("Admin từ chối/hủy. Hoàn 100%: " + totalPaid + " đ.");
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
@@ -391,7 +395,9 @@ public class BookingService {
             
             newBooking.setTicketCode(oldTicketCode);
             newBooking.setNote("Đổi từ sân " + current.getPitch().getName());
-            newBooking.setCheckedIn(true); // Auto check-in
+            
+            // SỬA Ở ĐÂY: Kế thừa trạng thái Check-in của đơn cũ
+            newBooking.setCheckedIn(current.isCheckedIn());
 
             bookingRepository.save(newBooking);
         }

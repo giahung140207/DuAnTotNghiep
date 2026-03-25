@@ -35,7 +35,10 @@ public class SecurityConfig {
                 .headers(headers -> headers
                         .addHeaderWriter(new XFrameOptionsHeaderWriter(XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN))
                 )
-                
+                // THÊM: Bỏ qua CSRF cho WebSocket để tránh lỗi kết nối
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/chat-websocket/**")
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/home", "/index").permitAll()
                         .requestMatchers("/facilities/**", "/facilities/search").permitAll()
@@ -43,6 +46,8 @@ public class SecurityConfig {
                         .requestMatchers("/register", "/login", "/gen-pass", "/verify-otp", "/resend-otp", "/forgot-password", "/reset-password", "/resend-activation").permitAll()
                         .requestMatchers("/verify-password-otp", "/resend-password-otp").authenticated()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/uploads/**", "/static/**", "/favicon.ico").permitAll()
+                        // Cho phép truy cập WebSocket endpoint
+                        .requestMatchers("/chat-websocket/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/booking/**", "/profile/**", "/support/**", "/review/**", "/user/**").authenticated()
                         .anyRequest().authenticated()

@@ -31,6 +31,7 @@ public class SupportController {
         User user = userService.findByUsername(principal.getName()).orElseThrow();
         List<SupportMessage> messages = supportMessageService.getMessagesByUser(user.getId());
         model.addAttribute("messages", messages);
+        model.addAttribute("user", user); // THÊM USER VÀO MODEL
         return "support";
     }
     
@@ -40,6 +41,7 @@ public class SupportController {
         User user = userService.findByUsername(principal.getName()).orElseThrow();
         List<SupportMessage> messages = supportMessageService.getMessagesByUser(user.getId());
         model.addAttribute("messages", messages);
+        model.addAttribute("user", user); // THÊM USER VÀO MODEL (QUAN TRỌNG CHO WEBSOCKET)
         return "support-iframe";
     }
 
@@ -50,6 +52,7 @@ public class SupportController {
         User user = userService.findByUsername(principal.getName()).orElseThrow();
         List<SupportMessage> messages = supportMessageService.getMessagesByUser(user.getId());
         model.addAttribute("messages", messages);
+        model.addAttribute("user", user); // THÊM USER VÀO MODEL
         return "support-iframe :: messageList"; // Trả về fragment th:fragment="messageList"
     }
 

@@ -2,53 +2,198 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chọn sân muốn đổi | Sport Rental</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/custom.css}">
+    <style>
+        body {
+            background-color: #f4f4f4; /* Nền xám nhạt đồng bộ Profile */
+            color: #333;
+        }
+
+        .main-wrapper {
+            min-height: 80vh;
+            padding-top: 100px;
+            padding-bottom: 50px;
+        }
+
+        .swap-card {
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e0e0e0;
+            overflow: hidden;
+        }
+
+        .swap-header {
+            background-color: #721114;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .swap-header h3 {
+            font-weight: 700;
+            margin-bottom: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .booking-info-box {
+            background-color: #fff8f8;
+            border-left: 4px solid #721114;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 5px;
+        }
+
+        .pitch-list-container {
+            padding: 0 20px 20px;
+        }
+
+        /* Tùy chỉnh item sân bóng */
+        .pitch-item {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pitch-item:hover {
+            border-color: #721114;
+            box-shadow: 0 5px 15px rgba(114, 17, 20, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .pitch-name {
+            color: #721114;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .pitch-price {
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .btn-swap {
+            background-color: #721114;
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-swap:hover {
+            background-color: #a3161a;
+            color: #fff;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #777;
+        }
+    </style>
 </head>
 <body>
 
+    <!-- Navbar -->
     <div th:replace="~{fragments/header :: header('profile')}"></div>
 
-    <div class="container section-padding" style="margin-top: 80px;">
-        <h2 class="text-center mb-4 text-white">Chọn sân muốn đổi</h2>
+    <div class="main-wrapper">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10">
 
-        <div class="alert alert-info text-center">
-            Đang đổi đơn: <strong th:text="${'#' + currentBooking.id}">#123</strong> -
-            <span th:text="${currentBooking.pitch.name}">Sân A</span>
-            (<span th:text="${#temporals.format(currentBooking.startTime, 'HH:mm') + ' - ' + #temporals.format(currentBooking.endTime, 'HH:mm')}"></span>)
-        </div>
-
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="list-group">
-                    <div th:each="pitch : ${availablePitches}" class="list-group-item list-group-item-action bg-dark text-white border-secondary d-flex justify-content-between align-items-center p-3">
-                        <div>
-                            <h5 class="mb-1 text-info" th:text="${pitch.name}">Sân B</h5>
-                            <small th:text="${pitch.type.name() == 'PITCH_5' ? 'Sân 5 người' : 'Sân 7 người'}">Loại sân</small> -
-                            <small class="text-warning" th:text="${#numbers.formatDecimal(pitch.pricePerHour, 0, 'COMMA', 0, 'POINT') + ' đ/h'}">300,000 đ/h</small>
+                    <div class="swap-card">
+                        <div class="swap-header">
+                            <h3><i class="fas fa-exchange-alt me-2"></i>Chọn sân thay thế</h3>
                         </div>
-                        <form th:action="@{/booking/swap}" method="post">
-                            <input type="hidden" name="bookingId" th:value="${currentBooking.id}">
-                            <input type="hidden" name="newPitchId" th:value="${pitch.id}">
-                            <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('Gửi yêu cầu đổi sang sân này?');">
-                                Chọn sân này
-                            </button>
-                        </form>
+
+                        <!-- Thông tin đơn hiện tại -->
+                        <div class="booking-info-box">
+                            <h6 class="text-muted mb-2">Đang yêu cầu đổi cho đơn hàng:</h6>
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                <div>
+                                    <span class="badge bg-secondary me-2" th:text="${'Mã đơn: #' + currentBooking.id}">#123</span>
+                                    <strong class="fs-5 text-dark" th:text="${currentBooking.pitch.name}">Sân A</strong>
+                                </div>
+                                <div class="text-danger fw-bold">
+                                    <i class="far fa-clock me-1"></i>
+                                    <span th:text="${#temporals.format(currentBooking.startTime, 'HH:mm')}"></span> -
+                                    <span th:text="${#temporals.format(currentBooking.endTime, 'HH:mm')}"></span>
+                                    <span class="text-muted ms-1" style="font-size: 0.9rem;" th:text="${'(' + #temporals.format(currentBooking.startTime, 'dd/MM/yyyy') + ')'}"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Danh sách sân trống -->
+                        <div class="pitch-list-container">
+                            <h6 class="mb-3 text-dark fw-bold border-bottom pb-2">Danh sách sân đang trống cùng khung giờ:</h6>
+
+                            <div class="list-group">
+                                <!-- Lặp các sân -->
+                                <div th:each="pitch : ${availablePitches}" class="pitch-item">
+                                    <div>
+                                        <div class="pitch-name" th:text="${pitch.name}">Sân B</div>
+                                        <div class="mb-1">
+                                            <span class="badge bg-info text-dark me-2" th:if="${pitch.type.name() == 'PITCH_5'}"><i class="fas fa-users me-1"></i> Sân 5 người</span>
+                                            <span class="badge bg-primary me-2" th:if="${pitch.type.name() == 'PITCH_7'}"><i class="fas fa-users me-1"></i> Sân 7 người</span>
+                                        </div>
+                                        <div class="pitch-price" th:text="${#numbers.formatDecimal(pitch.pricePerHour, 0, 'COMMA', 0, 'POINT') + ' đ/giờ'}">300,000 đ/giờ</div>
+                                    </div>
+
+                                    <div>
+                                        <form th:action="@{/booking/swap}" method="post">
+                                            <input type="hidden" name="bookingId" th:value="${currentBooking.id}">
+                                            <input type="hidden" name="newPitchId" th:value="${pitch.id}">
+                                            <button type="submit" class="btn btn-swap" onclick="return confirm('Bạn chắc chắn muốn gửi yêu cầu đổi sang sân này chứ?');">
+                                                <i class="fas fa-check-circle me-1"></i> Chọn sân này
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- Trường hợp không có sân trống -->
+                                <div th:if="${availablePitches.isEmpty()}" class="empty-state">
+                                    <i class="far fa-frown fa-3x mb-3 text-muted"></i>
+                                    <h5>Rất tiếc!</h5>
+                                    <p>Không có sân nào khác đang trống trong khung giờ này.</p>
+                                </div>
+                            </div>
+
+                            <div class="text-center mt-4">
+                                <a th:href="@{/profile}" class="btn btn-outline-secondary px-4 py-2 fw-bold"><i class="fas fa-arrow-left me-2"></i>Quay lại Hồ sơ</a>
+                            </div>
+
+                        </div>
                     </div>
 
-                    <div th:if="${availablePitches.isEmpty()}" class="text-center text-muted py-4">
-                        Không có sân trống nào khác trong khung giờ này.
-                    </div>
-                </div>
-
-                <div class="text-center mt-4">
-                    <a th:href="@{/profile}" class="btn btn-secondary">Quay lại</a>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Footer -->
     <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <!-- CHAT WIDGET -->
+    <div th:replace="~{fragments/chat-widget :: chat-widget}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/main.js}"></script>
 </body>
 </html>

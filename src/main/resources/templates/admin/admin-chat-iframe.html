@@ -8,6 +8,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/custom.css}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Thêm thư viện SockJS và STOMP cho WebSocket -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
     <style>
         body { background-color: #0a192f; overflow: hidden; }
         .chat-box {
@@ -83,36 +88,65 @@
         }
 
         var chatBox = document.getElementById("chatBox");
+        var userId = document.getElementById("targetUserId").value;
+        var stompClient = null;
 
         function scrollToBottom() {
             if(chatBox) chatBox.scrollTop = chatBox.scrollHeight;
         }
 
+        // --- TÍCH HỢP WEBSOCKET ---
+        function connectWebSocket() {
+            var socket = new SockJS('/chat-websocket');
+            stompClient = Stomp.over(socket);
+            stompClient.debug = null;
+
+            stompClient.connect({}, function (frame) {
+                console.log('Connected to WebSocket!');
+                // Đăng ký lắng nghe kênh chat của khách hàng này
+                stompClient.subscribe('/topic/messages/' + userId, function (message) {
+                    if (message.body === 'NEW_MESSAGE') {
+                        loadMessages(false);
+                    }
+                });
+            }, function(error) {
+                console.log("WebSocket error. Reconnecting in 5s...");
+                setTimeout(connectWebSocket, 5000);
+            });
+        }
+
         $(document).ready(function() {
             scrollToBottom();
+            connectWebSocket(); // Khởi động WebSocket
         });
 
         $('#chatForm').submit(function(e) {
             e.preventDefault();
             var content = $('#content').val();
-            var userId = $('#targetUserId').val();
 
             if (!content.trim()) return;
 
-            // ĐỔI URL API
             $.post('/admin/chat-reply-ajax', { userId: userId, content: content }, function(response) {
                 if (response === 'success') {
                     $('#content').val('');
+
+                    // Gửi tín hiệu WebSocket để khách hàng biết
+                    if (stompClient && stompClient.connected) {
+                        stompClient.send("/app/chat", {}, JSON.stringify({
+                            'userId': userId,
+                            'content': 'ping',
+                            'senderType': 'ADMIN'
+                        }));
+                    }
+
                     loadMessages(true);
                 }
             });
         });
 
         function loadMessages(forceScroll = false) {
-            var userId = $('#targetUserId').val();
             var isAtBottom = (chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight) < 50;
 
-            // ĐỔI LẠI URL DO API Ở CONTROLLER ĐÃ BỊ SỬA DÙNG CHO SUPPORT CHÍNH
             $.get('/admin/chat-messages-iframe?userId=' + userId, function(data) {
                  $('#chatBox').html(data);
                  if (isAtBottom || forceScroll) {
@@ -121,7 +155,8 @@
             });
         }
 
-        setInterval(loadMessages, 3000);
+        // Bỏ Polling cũ
+        // setInterval(loadMessages, 3000);
     </script>
 </body>
 </html>

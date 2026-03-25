@@ -8,6 +8,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/custom.css}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Thêm thư viện SockJS và STOMP cho WebSocket -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
     <style>
         /* Nền khung chat bên trong iframe */
         body {
@@ -77,6 +82,9 @@
 </head>
 <body class="p-2">
 
+    <!-- Lấy userId hiện tại để đăng ký WebSocket Room -->
+    <input type="hidden" id="currentUserId" th:if="${user != null}" th:value="${user.id}">
+
     <div class="chat-box" id="chatBox">
         <div th:replace="~{::messageList}"></div>
     </div>
@@ -107,12 +115,47 @@
 
         var chatBox = document.getElementById("chatBox");
 
+        // KIỂM TRA SỰ TỒN TẠI CỦA ID TRƯỚC KHI LẤY VALUE
+        var userIdInput = document.getElementById("currentUserId");
+        var userId = userIdInput ? userIdInput.value : null;
+
+        var stompClient = null;
+
         function scrollToBottom() {
             if(chatBox) chatBox.scrollTop = chatBox.scrollHeight;
         }
 
+        // --- TÍCH HỢP WEBSOCKET ---
+        function connectWebSocket() {
+            if (!userId) return; // Nếu chưa đăng nhập thì không kết nối WebSocket
+
+            var socket = new SockJS('/chat-websocket');
+            stompClient = Stomp.over(socket);
+
+            // Tắt log của STOMP cho đỡ rối console
+            stompClient.debug = null;
+
+            stompClient.connect({}, function (frame) {
+                console.log('Connected to WebSocket!');
+
+                // Đăng ký lắng nghe kênh chat CỦA RIÊNG KHÁCH HÀNG NÀY
+                stompClient.subscribe('/topic/messages/' + userId, function (message) {
+                    if (message.body === 'NEW_MESSAGE') {
+                        // Khi nhận được tín hiệu có tin nhắn mới -> Lập tức gọi hàm loadMessages()
+                        loadMessages(false);
+                    }
+                });
+            }, function(error) {
+                console.log("WebSocket error. Reconnecting in 5s...");
+                setTimeout(connectWebSocket, 5000);
+            });
+        }
+
         $(document).ready(function() {
             scrollToBottom();
+            if (userId) {
+                connectWebSocket(); // Khởi động kết nối WebSocket nếu đã đăng nhập
+            }
         });
 
         $('#chatForm').submit(function(e) {
@@ -120,9 +163,20 @@
             var content = $('#content').val();
             if (!content.trim()) return;
 
+            // Vẫn dùng API Ajax cũ để lưu tin nhắn vào DB
             $.post('/support/send-ajax', { content: content }, function(response) {
                 if (response === 'success') {
                     $('#content').val('');
+
+                    // LƯU Ý: Sau khi lưu DB xong, bắn 1 tín hiệu qua WebSocket để các màn hình khác (và Admin) biết
+                    if (stompClient && stompClient.connected) {
+                        stompClient.send("/app/chat", {}, JSON.stringify({
+                            'userId': userId,
+                            'content': 'ping',
+                            'senderType': 'CUSTOMER'
+                        }));
+                    }
+
                     loadMessages(true);
                 }
             });
@@ -139,7 +193,8 @@
             });
         }
 
-        setInterval(loadMessages, 3000);
+        // XÓA BỎ LỆNH setInterval (POLLING) CŨ
+        // setInterval(loadMessages, 3000);
     </script>
 </body>
 </html>

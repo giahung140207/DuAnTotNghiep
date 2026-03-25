@@ -203,19 +203,23 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
 
-                    <form th:action="@{/booking/confirm}" method="post">
+                    <!-- THAY ĐỔI: Dùng AJAX để hiển thị Popup Confirm thay vì chuyển trang -->
+                    <form id="bookingForm" th:action="@{/booking/create}" method="post">
                         <input type="hidden" name="pitchId" th:value="${pitch.id}">
+                        <!-- Lưu giá tiền để JS dùng -->
+                        <input type="hidden" id="pitchPrice" th:value="${pitch.pricePerHour}">
+                        <input type="hidden" id="pitchName" th:value="${pitch.name}">
 
                         <div class="mb-3">
                             <label class="form-label">Ngày đặt</label>
-                            <input type="date" name="date" class="form-control" required
+                            <input type="date" name="date" id="bookingDate" class="form-control" required
                                    th:min="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}"
                                    th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Khung giờ</label>
-                            <select name="startTime" class="form-select" required>
+                            <select name="startTime" id="bookingStartTime" class="form-select" required>
                                 <option value="07:00">07:00 - 09:00 (Sáng)</option>
                                 <option value="10:00">10:00 - 12:00 (Trưa)</option>
                                 <option value="14:00">14:00 - 16:00 (Chiều)</option>
@@ -225,15 +229,15 @@
 
                         <div class="mb-4">
                             <label class="form-label">Thời lượng</label>
-                            <select name="duration" class="form-select">
-                                <option value="120" selected>120 Phút (2 tiếng)</option>
+                            <select name="duration" id="bookingDuration" class="form-select">
+                                <option value="120" selected>120 Phút</option>
                                 <option value="90">90 Phút</option>
                                 <option value="60">60 Phút</option>
                             </select>
                         </div>
 
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-hero fw-bold py-3 text-uppercase">
+                            <button type="button" class="btn btn-hero fw-bold py-3 text-uppercase" onclick="showConfirmPopup()">
                                 <i class="fas fa-check-circle me-2"></i> Xác nhận đặt sân
                             </button>
                         </div>
@@ -258,6 +262,53 @@
     </div>
 </section>
 
+<!-- THÊM MODAL POPUP XÁC NHẬN ĐẶT SÂN -->
+<div class="modal fade" id="confirmBookingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border: 2px solid #721114; border-radius: 15px;">
+            <div class="modal-header" style="background-color: #721114; color: white; border-top-left-radius: 13px; border-top-right-radius: 13px;">
+                <h5 class="modal-title fw-bold"><i class="fas fa-file-invoice-dollar me-2"></i>XÁC NHẬN THÔNG TIN</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-center mb-4">
+                    <h4 class="text-danger fw-bold mb-1" id="confirmPitchName">Sân Bóng</h4>
+                    <span class="badge bg-success">Dịch vụ đặt sân</span>
+                </div>
+
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span class="text-muted"><i class="far fa-calendar-alt me-2"></i>Ngày đặt</span>
+                        <strong id="confirmDate">--/--/----</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span class="text-muted"><i class="far fa-clock me-2"></i>Giờ bắt đầu</span>
+                        <strong id="confirmStartTime">--:--</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span class="text-muted"><i class="fas fa-hourglass-half me-2"></i>Thời lượng</span>
+                        <strong id="confirmDuration">-- Phút</strong>
+                    </li>
+                </ul>
+
+                <div class="p-3 rounded" style="background-color: #f8f9fa; border: 1px dashed #ccc;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-dark">Dự kiến thanh toán:</span>
+                        <h4 class="text-danger fw-bold mb-0" id="confirmPrice">0 đ</h4>
+                    </div>
+                    <small class="text-muted d-block mt-2" style="font-size: 0.8rem;">
+                        * Đây là mức giá ước tính. Hệ thống sẽ tính lại nếu bạn có điểm tích lũy hoặc đặt lố giờ.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0 pb-4 px-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="width: 48%;">Quay lại chỉnh sửa</button>
+                <button type="button" class="btn btn-danger" onclick="submitBookingForm()" style="width: 48%; background-color: #721114;">Xác nhận đặt ngay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Footer -->
 <div th:replace="~{fragments/footer :: footer}"></div>
 
@@ -266,7 +317,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script th:src="@{/js/main.js}"></script>
-</body>
 <script>
     setTimeout(function(){
         let alerts = document.querySelectorAll('.alert');
@@ -274,5 +324,45 @@
             alert.style.display = "none";
         });
     },3000);
+
+    // XỬ LÝ POPUP CONFIRM BẰNG JS TRÊN TRANG
+    function showConfirmPopup() {
+        // Lấy dữ liệu từ form
+        var date = document.getElementById('bookingDate').value;
+        var startTime = document.getElementById('bookingStartTime').value;
+        var duration = document.getElementById('bookingDuration').value;
+
+        var pitchName = document.getElementById('pitchName').value;
+        var pitchPricePerHour = parseFloat(document.getElementById('pitchPrice').value);
+
+        // Tính toán cơ bản để hiển thị
+        // Chuyển đổi định dạng ngày YYYY-MM-DD sang DD/MM/YYYY cho đẹp
+        var dateObj = new Date(date);
+        var formattedDate = String(dateObj.getDate()).padStart(2, '0') + '/' +
+                            String(dateObj.getMonth() + 1).padStart(2, '0') + '/' +
+                            dateObj.getFullYear();
+
+        // Tính tiền = (giá 1 giờ / 60) * số phút
+        var totalPrice = (pitchPricePerHour / 60) * parseInt(duration);
+        // Định dạng tiền tệ VNĐ
+        var formattedPrice = new Intl.NumberFormat('vi-VN').format(totalPrice) + ' đ';
+
+        // Gắn dữ liệu vào Modal
+        document.getElementById('confirmPitchName').innerText = pitchName;
+        document.getElementById('confirmDate').innerText = formattedDate;
+        document.getElementById('confirmStartTime').innerText = startTime;
+        document.getElementById('confirmDuration').innerText = duration + ' Phút';
+        document.getElementById('confirmPrice').innerText = formattedPrice;
+
+        // Hiển thị Modal
+        var confirmModal = new bootstrap.Modal(document.getElementById('confirmBookingModal'));
+        confirmModal.show();
+    }
+
+    function submitBookingForm() {
+        // Đóng modal và submit form gốc
+        document.getElementById('bookingForm').submit();
+    }
 </script>
+</body>
 </html>

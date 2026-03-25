@@ -235,15 +235,27 @@
                                             <small class="text-muted" th:text="${#temporals.format(booking.startTime, 'HH:mm') + ' - ' + #temporals.format(booking.endTime, 'HH:mm')}"></small>
                                         </td>
                                         <td>
-                                            <span class="fw-bold text-danger"
-                                                  th:classappend="${booking.status.name() == 'SWAPPED' or booking.status.name() == 'REFUNDED' ? 'text-decoration-line-through text-muted' : ''}"
-                                                  th:text="${#numbers.formatDecimal(booking.totalPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                                            <!-- SỬA CÁCH HIỂN THỊ TIỀN: NẾU HỦY, HIỂN THỊ TIỀN BỊ TRỪ (THU TỪ VÍ) -->
+                                            <th:block th:if="${booking.status.name() == 'CANCELLED'}">
+                                                <span class="fw-bold text-danger">
+                                                    <span th:text="${#numbers.formatDecimal(booking.totalPrice * 0.3, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                                                </span>
+                                                <br>
+                                                <small class="text-muted" style="font-size: 0.75rem;">(Phí hủy sân 30%)</small>
+                                            </th:block>
 
-                                            <div th:if="${booking.discountAmount != null and booking.discountAmount > 0}">
-                                                <small class="text-success" style="font-size: 0.7rem;">
-                                                    (Giảm <span th:text="${#numbers.formatDecimal(booking.discountAmount, 0, 'COMMA', 0, 'POINT')}"></span>đ)
-                                                </small>
-                                            </div>
+                                            <!-- CÁC TRƯỜNG HỢP CÒN LẠI -->
+                                            <th:block th:unless="${booking.status.name() == 'CANCELLED'}">
+                                                <span class="fw-bold text-danger"
+                                                      th:classappend="${booking.status.name() == 'SWAPPED' or booking.status.name() == 'REFUNDED' ? 'text-decoration-line-through text-muted' : ''}"
+                                                      th:text="${#numbers.formatDecimal(booking.totalPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+
+                                                <div th:if="${booking.discountAmount != null and booking.discountAmount > 0}">
+                                                    <small class="text-success" style="font-size: 0.7rem;">
+                                                        (Giảm <span th:text="${#numbers.formatDecimal(booking.discountAmount, 0, 'COMMA', 0, 'POINT')}"></span>đ)
+                                                    </small>
+                                                </div>
+                                            </th:block>
                                         </td>
                                         <td>
                                             <span th:if="${booking.status.name() == 'PENDING'}" class="badge bg-warning text-dark">Chờ duyệt</span>
@@ -265,7 +277,7 @@
                                             <a th:if="${booking.status.name() == 'PENDING' or booking.status.name() == 'CONFIRMED'}"
                                                th:href="@{/booking/cancel/{id}(id=${booking.id})}"
                                                class="btn btn-sm btn-outline-danger mb-1"
-                                               onclick="return confirm('Bạn có chắc muốn hủy sân này?');">Hủy</a>
+                                               onclick="return confirm('Bạn có chắc muốn hủy sân này? (Có thể chịu phí 30%)');">Hủy</a>
 
                                             <button th:if="${booking.status.name() == 'COMPLETED'}"
                                                     class="btn btn-sm btn-outline-warning mb-1"

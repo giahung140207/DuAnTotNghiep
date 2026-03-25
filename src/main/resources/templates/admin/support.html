@@ -11,6 +11,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Thêm thư viện SockJS và STOMP cho WebSocket -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
     <style>
         /* Custom CSS cho trang Support */
         .chat-container {
@@ -256,6 +261,8 @@
         var chatBox = document.getElementById("chatBox");
         var scrollDownBtn = document.getElementById('scrollDownBtn');
         var isUserScrolling = false;
+        var userId = $('#receiverId').val();
+        var stompClient = null;
 
         function forceScrollToBottom() {
             if(chatBox) {
@@ -279,17 +286,40 @@
             });
         }
 
-        // Vừa vào là cuộn xuống đáy
+        // --- TÍCH HỢP WEBSOCKET ---
+        function connectWebSocket() {
+            var socket = new SockJS('/chat-websocket');
+            stompClient = Stomp.over(socket);
+            stompClient.debug = null;
+
+            stompClient.connect({}, function (frame) {
+                console.log('Connected to WebSocket (Admin)!');
+                // Admin đăng ký lắng nghe kênh chat của khách hàng ĐANG CHỌN
+                stompClient.subscribe('/topic/messages/' + userId, function (message) {
+                    if (message.body === 'NEW_MESSAGE') {
+                        // Khi nhận được tín hiệu có tin nhắn mới -> Lập tức tải lại tin nhắn
+                        loadMessages(false);
+                    }
+                });
+            }, function(error) {
+                console.log("WebSocket error. Reconnecting in 5s...");
+                setTimeout(connectWebSocket, 5000);
+            });
+        }
+
+        // Vừa vào là cuộn xuống đáy và kết nối socket
         $(document).ready(function() {
             if(chatBox) {
                 chatBox.scrollTop = chatBox.scrollHeight;
+            }
+            if(userId) {
+                connectWebSocket();
             }
         });
 
         $('#adminChatForm').submit(function(e) {
             e.preventDefault();
             var content = $('#messageContent').val();
-            var userId = $('#receiverId').val();
             var url = $(this).attr('action');
 
             if (!content.trim()) return;
@@ -300,6 +330,16 @@
             }, function(response) {
                 if (response === 'success') {
                     $('#messageContent').val('');
+
+                    // Gửi tín hiệu WebSocket cho Khách hàng biết
+                    if (stompClient && stompClient.connected) {
+                        stompClient.send("/app/chat", {}, JSON.stringify({
+                            'userId': userId,
+                            'content': 'ping',
+                            'senderType': 'ADMIN'
+                        }));
+                    }
+
                     // Ép cuộn xuống khi tự gửi tin nhắn
                     isUserScrolling = false;
                     loadMessages(true);
@@ -308,7 +348,6 @@
         });
 
         function loadMessages(forceScroll = false) {
-            var userId = $('#receiverId').val();
             if (!userId) return;
 
             var isAtBottom = (chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight) < 50;
@@ -325,7 +364,8 @@
             });
         }
 
-        setInterval(loadMessages, 3000);
+        // Xóa dòng Polling (tự động load mỗi 3 giây)
+        // setInterval(loadMessages, 3000);
     </script>
 </body>
 </html>
