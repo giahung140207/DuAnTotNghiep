@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -31,14 +32,16 @@ public class BookingService {
     private final PitchRepository pitchRepository;
     private final UserRepository userRepository;
     private final InvoiceRepository invoiceRepository;
+    private final EmailService emailService; // Thêm EmailService
 
     private static final List<BookingStatus> EXCLUDED_STATUSES = Arrays.asList(BookingStatus.CANCELLED, BookingStatus.REFUNDED, BookingStatus.SWAPPED);
 
-    public BookingService(BookingRepository bookingRepository, PitchRepository pitchRepository, UserRepository userRepository, InvoiceRepository invoiceRepository) {
+    public BookingService(BookingRepository bookingRepository, PitchRepository pitchRepository, UserRepository userRepository, InvoiceRepository invoiceRepository, EmailService emailService) {
         this.bookingRepository = bookingRepository;
         this.pitchRepository = pitchRepository;
         this.userRepository = userRepository;
         this.invoiceRepository = invoiceRepository;
+        this.emailService = emailService;
     }
 
     public Booking getBookingById(Long id) {
@@ -122,7 +125,30 @@ public class BookingService {
         
         booking.setPaymentStatus("PAID");
 
-        return bookingRepository.save(booking);
+        Booking savedBooking = bookingRepository.save(booking);
+
+        // ===== GỬI MAIL XÁC NHẬN ĐẶT SÂN =====
+        try {
+            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            
+            String emailContent = "Xin chào " + user.getFullName() + ",\n\n"
+                    + "Bạn đã yêu cầu đặt sân thành công tại Sport Rental!\n\n"
+                    + "Chi tiết đơn hàng:\n"
+                    + "- Sân: " + pitch.getName() + "\n"
+                    + "- Ngày đá: " + start.format(dateFormatter) + "\n"
+                    + "- Giờ đá: " + start.format(timeFormatter) + " đến " + end.format(timeFormatter) + "\n"
+                    + "- Tổng tiền đã thanh toán: " + String.format("%,d", booking.getTotalPrice().longValue()) + " VNĐ\n\n"
+                    + "Đơn hàng của bạn đang được Admin xem xét. Vui lòng đến sớm 15 phút để làm thủ tục nhận sân khi đơn được duyệt.\n"
+                    + "Lưu ý: Nếu đến trễ quá 15 phút, hệ thống sẽ tự động hủy đơn và phạt 30% phí.\n\n"
+                    + "Cảm ơn bạn đã sử dụng dịch vụ!";
+            
+            emailService.sendSimpleMessage(user.getEmail(), "Xác nhận đặt sân thành công - Sport Rental", emailContent);
+        } catch (Exception e) {
+            System.err.println("Lỗi gửi mail đặt sân: " + e.getMessage());
+        }
+
+        return savedBooking;
     }
 
     // Request Swap Pitch
@@ -209,6 +235,20 @@ public class BookingService {
                 
                 // SỬA Ở ĐÂY: Kế thừa trạng thái Check-in của đơn cũ
                 booking.setCheckedIn(oldBooking.isCheckedIn()); 
+
+                // Gửi mail đổi sân
+                try {
+                    String emailContent = "Xin chào " + user.getFullName() + ",\n\n"
+                            + "Yêu cầu đổi sân của bạn đã được Admin xử lý thành công.\n\n"
+                            + "Chi tiết:\n"
+                            + "- Sân cũ: " + oldBooking.getPitch().getName() + "\n"
+                            + "- Sân mới: " + booking.getPitch().getName() + "\n"
+                            + "Tiền chênh lệch đã được cập nhật tự động vào ví của bạn.\n\n"
+                            + "Cảm ơn bạn đã sử dụng dịch vụ!";
+                    emailService.sendSimpleMessage(user.getEmail(), "Thông báo thay đổi lịch đặt sân", emailContent);
+                } catch (Exception e) {
+                    System.err.println("Lỗi gửi mail đổi sân: " + e.getMessage());
+                }
             }
         } else {
             // --- XỬ LÝ DUYỆT ĐƠN THƯỜNG ---
@@ -251,6 +291,12 @@ public class BookingService {
 
             booking.setPaymentStatus("REFUNDED");
             booking.setNote("Khách tự hủy sân. Hoàn 70%: " + refundAmount + " đ. Phí 30%: " + cancellationFee + " đ.");
+
+            // ===== GỬI MAIL HỦY SÂN =====
+            sendCancelEmail(user, booking, "Khách hàng tự hủy sân", refundAmount, cancellationFee);
+        } else {
+            booking.setNote("Khách tự hủy sân.");
+            sendCancelEmail(booking.getUser(), booking, "Khách hàng tự hủy sân", BigDecimal.ZERO, BigDecimal.ZERO);
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
@@ -274,10 +320,38 @@ public class BookingService {
 
             booking.setPaymentStatus("REFUNDED");
             booking.setNote("Admin từ chối/hủy. Hoàn 100%: " + totalPaid + " đ.");
+
+            // ===== GỬI MAIL TỪ CHỐI ĐƠN =====
+            sendCancelEmail(user, booking, "Admin từ chối đơn hàng hoặc sân gặp sự cố", totalPaid, BigDecimal.ZERO);
+        } else {
+            booking.setNote("Admin từ chối đơn hàng.");
+            sendCancelEmail(booking.getUser(), booking, "Admin từ chối đơn hàng", BigDecimal.ZERO, BigDecimal.ZERO);
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
+    }
+
+    // Hàm phụ trợ gửi mail khi hủy đơn
+    private void sendCancelEmail(User user, Booking booking, String cancelReason, BigDecimal refundAmount, BigDecimal cancellationFee) {
+        try {
+            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            String emailContent = "Xin chào " + user.getFullName() + ",\n\n"
+                    + "Đơn đặt sân của bạn đã bị HỦY.\n\n"
+                    + "Chi tiết đơn hàng:\n"
+                    + "- Sân: " + booking.getPitch().getName() + " (" + booking.getStartTime().format(timeFormatter) + " ngày " + booking.getStartTime().format(dateFormatter) + ")\n"
+                    + "- Lý do: " + cancelReason + "\n\n"
+                    + "Xử lý tài chính:\n"
+                    + "- Số tiền được hoàn lại vào ví: " + String.format("%,d", refundAmount.longValue()) + " VNĐ\n"
+                    + "- Phí hủy sân (nếu có): " + String.format("%,d", cancellationFee.longValue()) + " VNĐ\n\n"
+                    + "Cảm ơn bạn đã sử dụng dịch vụ của Sport Rental!";
+            
+            emailService.sendSimpleMessage(user.getEmail(), "Thông báo HỦY đơn đặt sân - Sport Rental", emailContent);
+        } catch (Exception e) {
+            System.err.println("Lỗi gửi mail hủy sân: " + e.getMessage());
+        }
     }
 
     @Transactional
@@ -400,6 +474,20 @@ public class BookingService {
             newBooking.setCheckedIn(current.isCheckedIn());
 
             bookingRepository.save(newBooking);
+            
+            // Gửi mail đổi sân
+            try {
+                String emailContent = "Xin chào " + user.getFullName() + ",\n\n"
+                        + "Đơn đặt sân của bạn vừa được Admin thay đổi sân thi đấu.\n\n"
+                        + "Chi tiết:\n"
+                        + "- Sân cũ: " + current.getPitch().getName() + "\n"
+                        + "- Sân mới: " + newPitch.getName() + "\n"
+                        + "Tiền chênh lệch (nếu có) đã được cập nhật tự động vào ví của bạn.\n\n"
+                        + "Cảm ơn bạn đã sử dụng dịch vụ!";
+                emailService.sendSimpleMessage(user.getEmail(), "Thông báo thay đổi lịch đặt sân", emailContent);
+            } catch (Exception e) {
+                System.err.println("Lỗi gửi mail đổi sân: " + e.getMessage());
+            }
         }
         // ... (Logic đổi giữa giờ giữ nguyên hoặc cập nhật tương tự nếu cần) ...
     }
