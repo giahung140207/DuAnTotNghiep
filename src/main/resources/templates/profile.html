@@ -238,10 +238,14 @@
                                             <!-- SỬA CÁCH HIỂN THỊ TIỀN: NẾU HỦY, HIỂN THỊ TIỀN BỊ TRỪ (THU TỪ VÍ) -->
                                             <th:block th:if="${booking.status.name() == 'CANCELLED'}">
                                                 <span class="fw-bold text-danger">
-                                                    <span th:text="${#numbers.formatDecimal(booking.totalPrice * 0.3, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                                                    <!-- Chỉ hiển thị 30% nếu thanh toán là REFUNDED, còn không thì 0 -->
+                                                    <span th:if="${booking.paymentStatus == 'REFUNDED' or booking.paymentStatus == 'REFUNDED_PARTIAL'}">
+                                                        <span th:text="${#numbers.formatDecimal(booking.totalPrice * 0.3, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                                                    </span>
+                                                    <span th:unless="${booking.paymentStatus == 'REFUNDED' or booking.paymentStatus == 'REFUNDED_PARTIAL'}">0 đ</span>
                                                 </span>
                                                 <br>
-                                                <small class="text-muted" style="font-size: 0.75rem;">(Phí hủy sân 30%)</small>
+                                                <small class="text-muted" style="font-size: 0.75rem;" th:if="${booking.paymentStatus == 'REFUNDED' or booking.paymentStatus == 'REFUNDED_PARTIAL'}">(Phí hủy sân 30%)</small>
                                             </th:block>
 
                                             <!-- CÁC TRƯỜNG HỢP CÒN LẠI -->
@@ -274,10 +278,15 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <a th:if="${booking.status.name() == 'PENDING' or booking.status.name() == 'CONFIRMED'}"
-                                               th:href="@{/booking/cancel/{id}(id=${booking.id})}"
-                                               class="btn btn-sm btn-outline-danger mb-1"
-                                               onclick="return confirm('Bạn có chắc muốn hủy sân này? (Có thể chịu phí 30%)');">Hủy</a>
+                                            <button th:if="${booking.status.name() == 'PENDING' or booking.status.name() == 'CONFIRMED'}"
+                                                    class="btn btn-sm btn-outline-danger mb-1"
+                                                    th:data-bookingid="${booking.id}"
+                                                    th:data-pitchname="${booking.pitch.name}"
+                                                    th:data-time="${#temporals.format(booking.startTime, 'HH:mm dd/MM/yyyy')}"
+                                                    th:data-price="${booking.totalPrice}"
+                                                    onclick="showCancelPopup(this)">
+                                                <i class="fas fa-times-circle"></i> Hủy
+                                            </button>
 
                                             <button th:if="${booking.status.name() == 'COMPLETED'}"
                                                     class="btn btn-sm btn-outline-warning mb-1"
@@ -318,6 +327,63 @@
                 </div>
             </div>
         </section>
+    </div>
+
+    <!-- MODAL XÁC NHẬN HỦY SÂN CHO KHÁCH HÀNG -->
+    <div class="modal fade" id="cancelConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border: 2px solid #721114; border-radius: 15px;">
+                <div class="modal-header" style="background-color: #721114; color: white; border-top-left-radius: 13px; border-top-right-radius: 13px;">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>XÁC NHẬN HỦY SÂN</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-center mb-3">Bạn đang yêu cầu hủy đơn đặt sân sau:</p>
+
+                    <ul class="list-group list-group-flush mb-4">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted"><i class="fas fa-futbol me-2"></i>Sân:</span>
+                            <strong id="cancelPitchName" class="text-dark">--</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted"><i class="far fa-clock me-2"></i>Thời gian đá:</span>
+                            <strong id="cancelTime" class="text-dark">--</strong>
+                        </li>
+                        <!-- Đã sửa lại để hiển thị Tổng tiền rõ ràng -->
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted"><i class="fas fa-money-bill-wave me-2"></i>Đã thanh toán:</span>
+                            <strong id="cancelTotalPrice" class="text-dark">--</strong>
+                        </li>
+                    </ul>
+
+                    <div class="p-3 rounded mb-3" style="background-color: #fff3f3; border: 1px dashed #dc3545;">
+                        <h6 class="text-danger fw-bold mb-2"><i class="fas fa-info-circle me-1"></i> Chính sách hủy sân:</h6>
+                        <ul class="mb-0 text-dark small ps-3">
+                            <li>Hủy <strong>trước 2 tiếng</strong> so với giờ đá: <span class="text-success fw-bold">Hoàn tiền 70%</span>, Phạt 30%.</li>
+                            <li>Hủy <strong>sát giờ</strong> (dưới 2 tiếng): <span class="text-danger fw-bold">Không thể tự hủy</span>.</li>
+                        </ul>
+                    </div>
+
+                    <div class="p-3 rounded text-center" style="background-color: #f8f9fa; border: 1px solid #ccc;">
+                        <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                            <span class="text-muted">Phí hủy sân (30%):</span>
+                            <span class="text-danger fw-bold" id="cancelFeeAmount">0 đ</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="text-dark fw-bold">Thực nhận vào ví:</span>
+                            <h3 class="text-success fw-bold mb-0" id="cancelRefundAmount">0 đ</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 pb-4 px-4 d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="width: 48%;">Không hủy</button>
+                    <!-- Form gửi request hủy sân -->
+                    <form id="cancelBookingForm" method="get" style="width: 48%;">
+                        <button type="submit" class="btn btn-danger w-100" style="background-color: #721114;">Đồng ý hủy</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- CÁC MODAL (NẠP TIỀN, ĐÁNH GIÁ, GIA HẠN, ĐỔI SÂN) GIỮ NGUYÊN -->
@@ -518,6 +584,35 @@
             document.getElementById('swapLink').href = '/booking/swap-options/' + bookingId;
         }
 
+        // HÀM MỚI: HIỂN THỊ POPUP HỦY SÂN BẰNG DATA-*
+        function showCancelPopup(btn) {
+            var bookingId = btn.getAttribute('data-bookingid');
+            var pitchName = btn.getAttribute('data-pitchname');
+            var timeStr = btn.getAttribute('data-time');
+            var totalPrice = parseFloat(btn.getAttribute('data-price'));
+
+            document.getElementById('cancelPitchName').innerText = pitchName;
+            document.getElementById('cancelTime').innerText = timeStr;
+
+            // Format tiền gốc
+            var formattedPrice = new Intl.NumberFormat('vi-VN').format(totalPrice) + ' đ';
+            document.getElementById('cancelTotalPrice').innerText = formattedPrice;
+
+            // Tính 30% phí phạt và 70% hoàn lại
+            var fee = totalPrice * 0.3;
+            var refund = totalPrice * 0.7;
+
+            document.getElementById('cancelFeeAmount').innerText = new Intl.NumberFormat('vi-VN').format(fee) + ' đ';
+            document.getElementById('cancelRefundAmount').innerText = new Intl.NumberFormat('vi-VN').format(refund) + ' đ';
+
+            // Cập nhật action cho form
+            document.getElementById('cancelBookingForm').action = '/booking/cancel/' + bookingId;
+
+            // Hiển thị modal
+            var cancelModal = new bootstrap.Modal(document.getElementById('cancelConfirmModal'));
+            cancelModal.show();
+        }
+
         // Kích hoạt Tooltip
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -526,11 +621,17 @@
 
         // --- AUTO RELOAD DATA (AJAX) ---
         function reloadProfileData() {
+            // Không reload khi đang mở các Modal để tránh bị nháy form
+            if (document.body.classList.contains('modal-open')) {
+                return;
+            }
+
             // Reload Bảng lịch sử
             fetch('/profile/bookings-fragment')
                 .then(response => response.text())
                 .then(html => {
-                    if(html) {
+                    if(html && !html.includes("An error happened during template parsing")) { // Sửa lỗi chèn nhầm báo lỗi vào bảng
+                        // Xóa các event listener cũ để tránh rác (nếu cần)
                         document.querySelector('#bookingTableContainer table').outerHTML = html;
                         // Re-init tooltips & events
                         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
@@ -538,13 +639,14 @@
                           return new bootstrap.Tooltip(tooltipTriggerEl)
                         })
                     }
-                });
+                })
+                .catch(error => console.log('Lỗi reload bảng:', error));
 
             // Reload Thông tin ví & Mã vé
             fetch('/profile/wallet-fragment')
                 .then(response => response.text())
                 .then(html => {
-                    if(html) {
+                    if(html && !html.includes("An error happened during template parsing")) { // Sửa lỗi chèn nhầm báo lỗi
                         document.getElementById('walletInfoContainer').outerHTML = html;
                         // Re-init tooltips
                         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
@@ -552,7 +654,8 @@
                           return new bootstrap.Tooltip(tooltipTriggerEl)
                         })
                     }
-                });
+                })
+                .catch(error => console.log('Lỗi reload ví:', error));
         }
 
         // Gọi hàm reload mỗi 5 giây
