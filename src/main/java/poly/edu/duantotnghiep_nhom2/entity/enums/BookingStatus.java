@@ -5,6 +5,7 @@ public enum BookingStatus {
     CONFIRMED,  // Đã duyệt (Đang chờ đá hoặc đang đá)
     COMPLETED,  // Đã hoàn thành (Đã đá xong)
     CANCELLED,  // Đã hủy
+    ADMINCANCELLED, // ADMIN hủy
     REFUNDED,   // Đã hoàn tiền (Thêm trạng thái này)
     SWAPPED     // Đã đổi sân
 }

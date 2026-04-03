@@ -245,7 +245,7 @@
                                                     <span th:unless="${booking.paymentStatus == 'REFUNDED' or booking.paymentStatus == 'REFUNDED_PARTIAL'}">0 đ</span>
                                                 </span>
                                                 <br>
-                                                <small class="text-muted" style="font-size: 0.75rem;" th:if="${booking.paymentStatus == 'REFUNDED' or booking.paymentStatus == 'REFUNDED_PARTIAL'}">(Phí hủy sân 30%)</small>
+                                                <small class="text-muted" style="font-size: 0.75rem;" th:if="${booking.paymentStatus == 'REFUNDED' or booking.paymentStatus == 'REFUNDED_PARTIAL' or booking.status != 'ADMINCANCELLED'}">(Phí hủy sân 30%)</small>
                                             </th:block>
 
                                             <!-- CÁC TRƯỜNG HỢP CÒN LẠI -->
@@ -265,6 +265,7 @@
                                             <span th:if="${booking.status.name() == 'PENDING'}" class="badge bg-warning text-dark">Chờ duyệt</span>
                                             <span th:if="${booking.status.name() == 'CONFIRMED'}" class="badge bg-success">Đã duyệt</span>
                                             <span th:if="${booking.status.name() == 'CANCELLED'}" class="badge bg-danger">Đã hủy</span>
+                                            <span th:if="${booking.status.name() == 'ADMINCANCELLED'}" class="badge bg-danger">Admin đã hủy</span>
                                             <span th:if="${booking.status.name() == 'COMPLETED'}" class="badge bg-secondary">Hoàn thành</span>
                                             <span th:if="${booking.status.name() == 'SWAPPED'}" class="badge bg-info text-dark">Đã đổi sân</span>
                                             <span th:if="${booking.status.name() == 'REFUNDED'}" class="badge bg-primary">Đã hoàn tiền</span>

@@ -328,7 +328,7 @@ public class BookingService {
             sendCancelEmail(booking.getUser(), booking, "Admin từ chối đơn hàng", BigDecimal.ZERO, BigDecimal.ZERO);
         }
 
-        booking.setStatus(BookingStatus.CANCELLED);
+        booking.setStatus(BookingStatus.ADMINCANCELLED);
         bookingRepository.save(booking);
     }
 
