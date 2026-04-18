@@ -34,7 +34,7 @@ public class BookingService {
     private final InvoiceRepository invoiceRepository;
     private final EmailService emailService; // Thêm EmailService
 
-    private static final List<BookingStatus> EXCLUDED_STATUSES = Arrays.asList(BookingStatus.CANCELLED, BookingStatus.REFUNDED, BookingStatus.SWAPPED);
+    private static final List<BookingStatus> EXCLUDED_STATUSES = Arrays.asList(BookingStatus.CANCELLED,BookingStatus.ADMINCANCELLED, BookingStatus.REFUNDED, BookingStatus.SWAPPED);
 
     public BookingService(BookingRepository bookingRepository, PitchRepository pitchRepository, UserRepository userRepository, InvoiceRepository invoiceRepository, EmailService emailService) {
         this.bookingRepository = bookingRepository;
