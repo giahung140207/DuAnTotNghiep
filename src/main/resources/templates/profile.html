@@ -201,19 +201,6 @@
                                 </div>
 
                                 <!-- HIỂN THỊ MÃ VÉ CHECK-IN (NẾU CÓ ĐƠN SẮP ĐÁ) -->
-                                <div class="mt-4 pt-3 border-top border-secondary"
-                                     th:if="${!bookings.isEmpty() and (bookings[0].status.name() == 'CONFIRMED' or bookings[0].status.name() == 'PENDING')}">
-                                    <h6 class="text-dark text-center mb-3">MÃ VÉ CỦA BẠN</h6>
-                                    <div class="text-center p-3 rounded"
-                                         style="background-color: #fff; border: 2px dashed #721114;">
-                                        <h3 class="text-danger fw-bold mb-1" th:text="${bookings[0].ticketCode}">
-                                            ABC12345</h3>
-                                        <div class="badge bg-danger text-white">
-                                            <i class="fas fa-clock me-1"></i>
-                                            <span th:text="${#temporals.format(bookings[0].startTime, 'HH:mm dd/MM')}">17:00 20/10</span>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                             <!-- END FRAGMENT WALLET -->
 
@@ -235,6 +222,7 @@
                                 <th>Tổng tiền</th>
                                 <th>Trạng thái</th>
                                 <th>Hành động</th>
+                                <th>Ticket code</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -354,6 +342,9 @@
                                             onclick="openSwapModal(this)">
                                         <i class="fas fa-exchange-alt"></i> Đổi sân
                                     </button>
+                                </td>
+                                <td>
+                                    <strong class="text-muted" th:text="${booking.getTicketCode()}"></strong>
                                 </td>
                             </tr>
                             <tr th:if="${bookings.isEmpty()}">

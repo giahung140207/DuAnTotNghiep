@@ -70,8 +70,8 @@ public class BookingService {
             }
         }
 
-        if (hasActiveBooking(userId)) {
-            throw new RuntimeException("Bạn đang có đơn đặt sân chưa hoàn thành.");
+        if (bookingRepository.findByUserIdAndStatusNotIn(userId,EXCLUDED_STATUSES).size() > 5) {
+            throw new RuntimeException("Bạn đang có 5 đơn đặt sân chưa hoàn thành.");
         }
 
         if (bookingRepository.existsByPitchIdAndOverlapTime(pitchId, start, end, EXCLUDED_STATUSES)) {

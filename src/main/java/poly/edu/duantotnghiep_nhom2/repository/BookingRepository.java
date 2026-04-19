@@ -21,6 +21,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findByUserIdOrderByStartTimeDesc(Long userId);
 
+    @Query("SELECT b FROM Booking b WHERE b.user.id = :userId AND b.status NOT IN :excludedStatuses")
+    List<Booking> findByUserIdAndStatusNotIn(
+            @Param("userId") Long userId,
+            @Param("excludedStatuses") Collection<BookingStatus> excludedStatuses
+    );
     @Query("SELECT CASE WHEN COUNT(b) > 0 THEN TRUE ELSE FALSE END " +
            "FROM Booking b " +
            "WHERE b.pitch.id = :pitchId " +
