@@ -587,8 +587,9 @@ public class BookingService {
                         case COMPLETED: return 3;
                         case SWAPPED: return 4;
                         case CANCELLED: return 5;
-                        case REFUNDED: return 6;
-                        default: return 7;
+                        case ADMINCANCELLED: return 6;
+                        case REFUNDED: return 7;
+                        default: return 8;
                     }
                 }))
                 .collect(Collectors.toList());

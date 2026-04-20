@@ -25,6 +25,6 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     // Tính tổng doanh thu theo tháng (Dựa trên ngày thanh toán)
     @Query("SELECT SUM(i.amount) " +
            "FROM Invoice i " +
-           "WHERE function('MONTH', i.paymentTime) = :month AND function('YEAR', i.paymentTime) = :year")
+           "WHERE function('MONTH', i.paymentTime) = :month AND function('YEAR', i.paymentTime) = :year AND LOWER(i.transactionCode) NOT LIKE 'cancel%'")
     BigDecimal calculateTotalRevenueByMonth(@Param("month") int month, @Param("year") int year);
 }

@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -17,7 +18,7 @@ public class DashboardService {
 
     private final BookingRepository bookingRepository;
     private final InvoiceRepository invoiceRepository;
-
+    private static final List<BookingStatus> EXCLUDED_STATUSES = Arrays.asList(BookingStatus.CANCELLED,BookingStatus.ADMINCANCELLED);
     public DashboardService(BookingRepository bookingRepository, InvoiceRepository invoiceRepository) {
         this.bookingRepository = bookingRepository;
         this.invoiceRepository = invoiceRepository;
@@ -33,7 +34,7 @@ public class DashboardService {
     public long countBookingsToday() {
         LocalDateTime start = LocalDate.now().atStartOfDay();
         LocalDateTime end = LocalDate.now().atTime(23, 59, 59);
-        return bookingRepository.countBookingsInDay(start, end, BookingStatus.CANCELLED);
+        return bookingRepository.countBookingsInDay(start, end, EXCLUDED_STATUSES);
     }
 
     // Lấy dữ liệu biểu đồ doanh thu 3 tháng gần nhất

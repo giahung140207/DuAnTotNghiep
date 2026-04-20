@@ -87,7 +87,7 @@ public class AdminController {
         LocalDateTime oneDayAgo = LocalDateTime.now().minusDays(1);
 
         return bookings.stream()
-                .filter(b -> b.getStatus() != BookingStatus.CANCELLED)
+                .filter(b -> b.getStatus() != BookingStatus.CANCELLED && b.getStatus() != BookingStatus.ADMINCANCELLED)
                 .map(booking -> {
                     String title = booking.getPitch().getName() + " - " + booking.getUser().getFullName();
                     String color;

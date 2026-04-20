@@ -194,6 +194,7 @@ public class BookingController {
             
             model.addAttribute("currentBooking", currentBooking);
             model.addAttribute("availablePitches", availablePitches);
+            model.addAttribute("availablePitches", availablePitches);
             return "swap-options"; // Tạo file template mới cho khách
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
