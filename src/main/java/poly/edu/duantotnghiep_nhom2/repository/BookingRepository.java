@@ -21,6 +21,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findByUserIdOrderByStartTimeDesc(Long userId);
 
+    @Query("SELECT b FROM Booking b WHERE b.user.id = :userId AND b.status NOT IN :excludedStatuses")
+    List<Booking> findByUserIdAndStatusNotIn(
+            @Param("userId") Long userId,
+            @Param("excludedStatuses") Collection<BookingStatus> excludedStatuses
+    );
     @Query("SELECT CASE WHEN COUNT(b) > 0 THEN TRUE ELSE FALSE END " +
            "FROM Booking b " +
            "WHERE b.pitch.id = :pitchId " +
@@ -54,7 +59,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByStatusOrderByCreatedAtDesc(BookingStatus status);
 
     @Query("SELECT COUNT(b) FROM Booking b WHERE b.startTime BETWEEN :start AND :end AND b.status NOT IN :excludedStatus")
-    long countBookingsInDay(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("excludedStatus") BookingStatus excludedStatus);
+    long countBookingsInDay(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("excludedStatus") Collection<BookingStatus> excludedStatus);
 
     @Query("SELECT b FROM Booking b WHERE b.status = :status AND b.startTime < :threshold AND b.isCheckedIn = false")
     List<Booking> findExpiredConfirmedBookings(@Param("threshold") LocalDateTime threshold, @Param("status") BookingStatus status);
