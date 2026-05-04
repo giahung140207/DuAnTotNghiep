@@ -235,7 +235,13 @@
                                 <option value="60">60 Phút</option>
                             </select>
                         </div>
-
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="fullDayBooking">
+                            <label class="form-check-label fw-bold text-danger" for="fullDayBooking">
+                                Đặt sân nguyên ngày
+                            </label>
+                        </div>
+                        <input type="hidden" name="isFullDay" id="isFullDay">
                         <div class="d-grid">
                             <button type="button" class="btn btn-hero fw-bold py-3 text-uppercase" onclick="showConfirmPopup()">
                                 <i class="fas fa-check-circle me-2"></i> Xác nhận đặt sân
@@ -327,7 +333,6 @@
 
     // XỬ LÝ POPUP CONFIRM BẰNG JS TRÊN TRANG
     function showConfirmPopup() {
-        // Lấy dữ liệu từ form
         var date = document.getElementById('bookingDate').value;
         var startTime = document.getElementById('bookingStartTime').value;
         var duration = document.getElementById('bookingDuration').value;
@@ -335,26 +340,43 @@
         var pitchName = document.getElementById('pitchName').value;
         var pitchPricePerHour = parseFloat(document.getElementById('pitchPrice').value);
 
-        // Tính toán cơ bản để hiển thị
-        // Chuyển đổi định dạng ngày YYYY-MM-DD sang DD/MM/YYYY cho đẹp
-        var dateObj = new Date(date);
-        var formattedDate = String(dateObj.getDate()).padStart(2, '0') + '/' +
-                            String(dateObj.getMonth() + 1).padStart(2, '0') + '/' +
-                            dateObj.getFullYear();
+        var isFullDay = document.getElementById('fullDayBooking').checked;
+        document.getElementById("isFullDay").value = isFullDay ? "true" : "false";
 
-        // Tính tiền = (giá 1 giờ / 60) * số phút
-        var totalPrice = (pitchPricePerHour / 60) * parseInt(duration);
-        // Định dạng tiền tệ VNĐ
+        // format ngày (tránh lỗi timezone)
+        var parts = date.split("-");
+        var formattedDate = parts[2] + "/" + parts[1] + "/" + parts[0];
+
+        var totalPrice;
+        var displayStartTime;
+        var displayDuration;
+
+        if (isFullDay) {
+            // 👉 XÁC NHẬN FULL DAY
+            var confirmFull = confirm("Bạn đang đặt sân NGUYÊN NGÀY (07:00 - 22:00). Tiếp tục?");
+            if (!confirmFull) return;
+
+            displayStartTime = "07:00 - 22:00";
+            displayDuration = "Cả ngày";
+
+            totalPrice = pitchPricePerHour * 15; // 15 tiếng
+        } else {
+            displayStartTime = startTime;
+            displayDuration = duration + " Phút";
+
+            totalPrice = Math.round((pitchPricePerHour / 60) * parseInt(duration));
+        }
+
         var formattedPrice = new Intl.NumberFormat('vi-VN').format(totalPrice) + ' đ';
 
-        // Gắn dữ liệu vào Modal
+        // Gán dữ liệu vào modal
         document.getElementById('confirmPitchName').innerText = pitchName;
         document.getElementById('confirmDate').innerText = formattedDate;
-        document.getElementById('confirmStartTime').innerText = startTime;
-        document.getElementById('confirmDuration').innerText = duration + ' Phút';
+        document.getElementById('confirmStartTime').innerText = displayStartTime;
+        document.getElementById('confirmDuration').innerText = displayDuration;
         document.getElementById('confirmPrice').innerText = formattedPrice;
 
-        // Hiển thị Modal
+        // Show modal
         var confirmModal = new bootstrap.Modal(document.getElementById('confirmBookingModal'));
         confirmModal.show();
     }
