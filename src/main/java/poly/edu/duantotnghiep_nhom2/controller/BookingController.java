@@ -39,6 +39,7 @@ public class BookingController {
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
             @RequestParam @DateTimeFormat(pattern = "HH:mm") LocalTime startTime,
             @RequestParam Integer duration,
+            @RequestParam(required = false) String isFullDay,
             Principal principal,
             RedirectAttributes redirectAttributes) {
 
@@ -54,38 +55,52 @@ public class BookingController {
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
             LocalDateTime startDateTime = LocalDateTime.of(date, startTime);
+            LocalDateTime endDateTime = null;
+            LocalDate today = LocalDate.now();
+            if ("true".equals(isFullDay)) {
+                if (!date.isAfter(today)) {
+                    redirectAttributes.addFlashAttribute(
+                            "error",
+                            "❌ Đặt cả ngày phải thực hiện trước ít nhất 1 ngày!"
+                    );
+                    return "redirect:/pitches/" + pitchId;
+                }
+                startDateTime = LocalDateTime.of(date, LocalTime.of(7, 0));
+                endDateTime = LocalDateTime.of(date, LocalTime.of(22, 0));
 
+            }
+            else {
         /* =============================
            XÁC ĐỊNH KHUNG GIỜ CỦA SLOT
         ============================== */
-            LocalDateTime slotEndTime;
+                LocalDateTime slotEndTime;
 
-            switch (startTime.getHour()) {
-                case 7:
-                    slotEndTime = LocalDateTime.of(date, LocalTime.of(9, 0));
-                    break;
-                case 10:
-                    slotEndTime = LocalDateTime.of(date, LocalTime.of(12, 0));
-                    break;
-                case 14:
-                    slotEndTime = LocalDateTime.of(date, LocalTime.of(16, 0));
-                    break;
-                case 18:
-                    slotEndTime = LocalDateTime.of(date, LocalTime.of(20, 0));
-                    break;
-                default:
-                    slotEndTime = startDateTime.plusMinutes(duration);
-            }
+                switch (startTime.getHour()) {
+                    case 7:
+                        slotEndTime = LocalDateTime.of(date, LocalTime.of(9, 0));
+                        break;
+                    case 10:
+                        slotEndTime = LocalDateTime.of(date, LocalTime.of(12, 0));
+                        break;
+                    case 14:
+                        slotEndTime = LocalDateTime.of(date, LocalTime.of(16, 0));
+                        break;
+                    case 18:
+                        slotEndTime = LocalDateTime.of(date, LocalTime.of(20, 0));
+                        break;
+                    default:
+                        slotEndTime = startDateTime.plusMinutes(duration);
+                }
 
         /* =============================
            TÍNH GIỜ KẾT THÚC
         ============================== */
-            LocalDateTime endDateTime = startDateTime.plusMinutes(duration);
+                endDateTime = startDateTime.plusMinutes(duration);
 
-            if (endDateTime.isAfter(slotEndTime)) {
-                endDateTime = slotEndTime;
+                if (endDateTime.isAfter(slotEndTime)) {
+                    endDateTime = slotEndTime;
+                }
             }
-
         /* =============================
            TẠO BOOKING
         ============================== */
@@ -178,6 +193,7 @@ public class BookingController {
             availablePitches.removeIf(p -> p.getId().equals(currentBooking.getPitch().getId()));
             
             model.addAttribute("currentBooking", currentBooking);
+            model.addAttribute("availablePitches", availablePitches);
             model.addAttribute("availablePitches", availablePitches);
             return "swap-options"; // Tạo file template mới cho khách
         } catch (Exception e) {

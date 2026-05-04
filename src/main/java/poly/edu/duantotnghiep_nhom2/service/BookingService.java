@@ -70,8 +70,8 @@ public class BookingService {
             }
         }
 
-        if (hasActiveBooking(userId)) {
-            throw new RuntimeException("Bạn đang có đơn đặt sân chưa hoàn thành.");
+        if (bookingRepository.findByUserIdAndStatusNotIn(userId,EXCLUDED_STATUSES).size() > 5) {
+            throw new RuntimeException("Bạn đang có 5 đơn đặt sân chưa hoàn thành.");
         }
 
         if (bookingRepository.existsByPitchIdAndOverlapTime(pitchId, start, end, EXCLUDED_STATUSES)) {
@@ -587,8 +587,9 @@ public class BookingService {
                         case COMPLETED: return 3;
                         case SWAPPED: return 4;
                         case CANCELLED: return 5;
-                        case REFUNDED: return 6;
-                        default: return 7;
+                        case ADMINCANCELLED: return 6;
+                        case REFUNDED: return 7;
+                        default: return 8;
                     }
                 }))
                 .collect(Collectors.toList());
