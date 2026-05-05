@@ -26,7 +26,7 @@ public class PitchService {
     private final BookingRepository bookingRepository;
 
     // THÊM SWAPPED VÀO DANH SÁCH LOẠI TRỪ
-    private static final List<BookingStatus> EXCLUDED_STATUSES = Arrays.asList(BookingStatus.CANCELLED, BookingStatus.REFUNDED, BookingStatus.SWAPPED);
+    private static final List<BookingStatus> EXCLUDED_STATUSES = Arrays.asList(BookingStatus.CANCELLED, BookingStatus.REFUNDED, BookingStatus.SWAPPED,BookingStatus.ADMINCANCELLED);
 
     public PitchService(PitchRepository pitchRepository, BookingRepository bookingRepository) {
         this.pitchRepository = pitchRepository;

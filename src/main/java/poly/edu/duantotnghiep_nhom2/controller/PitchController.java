@@ -1,5 +1,5 @@
-package poly.edu.duantotnghiep_nhom2.controller;
 
+package poly.edu.duantotnghiep_nhom2.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -37,14 +37,14 @@ public class PitchController {
     @GetMapping
     public String listPitches(Model model, Principal principal) {
         model.addAttribute("pitches", pitchService.getAllPitches());
-        
+
         if (principal != null) {
             User user = userService.findByUsername(principal.getName()).orElse(null);
             if (user != null) {
                 model.addAttribute("hasActiveBooking", bookingService.hasActiveBooking(user.getId()));
             }
         }
-        
+
         return "pitch-list";
     }
 
@@ -57,21 +57,25 @@ public class PitchController {
             Model model, Principal principal) {
 
         List<Pitch> results = pitchService.getAllPitches();
-
+        if (keyword != null && !keyword.isEmpty()) {
+            results = results.stream()
+                    .filter(p -> p.getName().toLowerCase().contains(keyword.toLowerCase()))
+                    .toList();
+        }
         if (type != null && !type.isEmpty()) {
             PitchType pType = type.equals("5") ? PitchType.PITCH_5 : PitchType.PITCH_7;
             results = results.stream().filter(p -> p.getType() == pType).toList();
         }
 
         model.addAttribute("pitches", results);
-        
+
         if (principal != null) {
             User user = userService.findByUsername(principal.getName()).orElse(null);
             if (user != null) {
                 model.addAttribute("hasActiveBooking", bookingService.hasActiveBooking(user.getId()));
             }
         }
-        
+
         return "pitch-list";
     }
 
@@ -81,14 +85,14 @@ public class PitchController {
         try {
             Pitch pitch = pitchService.getPitchById(id);
             model.addAttribute("pitch", pitch);
-            
+
             List<Booking> bookedSlots = pitchService.getBookedSlots(id, LocalDate.now());
             model.addAttribute("bookedSlots", bookedSlots);
-            
+
             // Lấy danh sách đánh giá
             List<Review> reviews = reviewService.getReviewsByPitch(id);
             model.addAttribute("reviews", reviews);
-            
+
             if (principal != null) {
                 User user = userService.findByUsername(principal.getName()).orElse(null);
                 if (user != null) {

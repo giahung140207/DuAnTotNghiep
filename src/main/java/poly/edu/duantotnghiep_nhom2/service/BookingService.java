@@ -586,8 +586,8 @@ public class BookingService {
                         case PENDING: return 2;
                         case COMPLETED: return 3;
                         case SWAPPED: return 4;
-                        case CANCELLED: return 5;
-                        case ADMINCANCELLED: return 6;
+                        case ADMINCANCELLED: return 5;
+                        case CANCELLED: return 6;
                         case REFUNDED: return 7;
                         default: return 8;
                     }

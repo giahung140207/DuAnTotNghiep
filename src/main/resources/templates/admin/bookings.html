@@ -151,6 +151,7 @@
                                     <span th:if="${booking.status.name() == 'PENDING'}" class="badge bg-warning text-dark">Chờ duyệt</span>
                                     <span th:if="${booking.status.name() == 'COMPLETED'}" class="badge bg-secondary">Xong</span>
                                     <span th:if="${booking.status.name() == 'CANCELLED'}" class="badge bg-danger">Hủy</span>
+                                    <span th:if="${booking.status.name() == 'ADMINCANCELLED'}" class="badge bg-danger">Admin Hủy</span>
                                     <span th:if="${booking.status.name() == 'SWAPPED'}" class="badge bg-info text-dark">Đã đổi sân</span>
                                     <span th:if="${booking.status.name() == 'REFUNDED'}" class="badge bg-primary">Đã hoàn tiền</span>
 
