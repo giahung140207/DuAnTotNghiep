@@ -22,6 +22,7 @@ public class DateTimeUtils {
         if (start == null || end == null) return 0;
 
         long minutes = ChronoUnit.MINUTES.between(start, end);
+        if(minutes <= 0) return 0;
         return (double) minutes / 60.0;
     }
 

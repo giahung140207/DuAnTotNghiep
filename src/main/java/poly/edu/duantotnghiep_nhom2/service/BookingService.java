@@ -627,7 +627,9 @@ public class BookingService {
         if (booking.getStatus() == BookingStatus.PENDING) {
             booking.setStatus(BookingStatus.CONFIRMED);
         }
-        
+        long minutesPlayed = Duration.between(booking.getStartTime(), booking.getEndTime()).toMinutes();
+        booking.setStartTime(now);
+        booking.setEndTime(now.plusMinutes(minutesPlayed));
         return bookingRepository.save(booking);
     }
 }
