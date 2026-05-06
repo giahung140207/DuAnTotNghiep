@@ -164,7 +164,6 @@ public class AdminController {
             LocalDateTime startDateTime = LocalDateTime.of(date, startTime);
             LocalDateTime endDateTime = startDateTime.plusMinutes(duration);
             Booking booking = bookingService.createBooking(userId, pitchId, startDateTime, endDateTime);
-            // Không tự động approve nữa, để PENDING
             // bookingService.approveBooking(booking.getId()); 
             redirectAttributes.addFlashAttribute("success", "Đã đặt sân thành công cho khách hàng (Chờ duyệt).");
         } catch (Exception e) {

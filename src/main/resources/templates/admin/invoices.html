@@ -203,19 +203,10 @@
         }
 
         function printInvoice() {
-            // 🔥 Lấy mã giao dịch
             var code = document.getElementById('detailCode').innerText;
-
-            // 🔥 Đặt tên file PDF (quan trọng)
             document.title = code;
-
-            // Lấy nội dung từ Modal
             var content = document.getElementById('invoiceContent').innerHTML;
-
-            // Đưa vào vùng in
             document.getElementById('printArea').innerHTML = content;
-
-            // Delay nhẹ để browser nhận title mới
             setTimeout(() => {
                 window.print();
             }, 100);
