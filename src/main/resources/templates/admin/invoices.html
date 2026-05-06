@@ -204,7 +204,7 @@
 
         function printInvoice() {
             var code = document.getElementById('detailCode').innerText;
-            document.title = code;
+            document.title = 'HoaDon_' + code;
             var content = document.getElementById('invoiceContent').innerHTML;
             document.getElementById('printArea').innerHTML = content;
             setTimeout(() => {
